@@ -11,6 +11,7 @@ L["NotificationContent"] = "The tabs shows modules contained in this addon, you 
 "You can find on |cff8788eeHBLyx|r's CurseForge page:" .. "\n" ..
 "|cff8788eeHBLyx_Tools|r: a collection of modules including Combat Indicator, Combat Timer, Focus Interrupt and more modules" .. "\n" ..
 "|cff8788eeMidnightFocusInterrupt|r: Focus Interrupt module standalone version" .. "\n" ..
+"|cff8788eeHBLyx_Encounter_Sound|r: Encounter Sound module standalone version" .. "\n" ..
 "|cff8788eeSharedMedia_HBLyx|r: an AI-generated Chinese sound pack(LibSharedMedia)"
 
 -- MARK： Downloads/Update

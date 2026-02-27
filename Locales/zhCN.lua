@@ -12,6 +12,7 @@ L["NotificationContent"] = "选项界面中的标签页显示了本插件包含�
 "你可以在|cff8788eeHBLyx|r的CurseForge页面里找到:" .. "\n" ..
 "|cff8788eeHBLyx_Tools|r: 一个包含战斗指示器, 战斗计时器, 焦点打断以及更多模块的集合" .. "\n" ..
 "|cff8788eeMidnightFocusInterrupt|r: 焦点打断模块的独立版本" .. "\n" ..
+"|cff8788eeHBLyx_Encounter_Sound|r: BOSS战音效模块的独立版本" .. "\n" ..
 "|cff8788eeSharedMedia_HBLyx|r: 一个AI生成的中文语音素材包(LibSharedMedia)"
 
 -- MARK： Downloads/Update
