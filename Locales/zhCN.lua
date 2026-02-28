@@ -108,6 +108,7 @@ L["ColorSettings"] = "颜色设置"
 L["TextSettings"] = "文字设置"
 L["InterruptibleColor"] = "可打断颜色"
 L["NotInterruptibleColor"] = "不可打断颜色"
+L["FrameStrata"] = "框架层级"
 
 -- MARK: Default values
 -- focus interrupt
