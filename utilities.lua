@@ -353,3 +353,23 @@ function addon.Utilities:GetAllSpecIconList(withColor)
 
 	return output
 end
+
+-- MARK: version check
+
+---Check if the version is less than current version
+---@param version string the current version
+---@param targetVersion string|nil the target version to compare against, if nil, compare against the addon's current version
+---@return boolean true if the version is less than target version, false otherwise
+function addon.Utilities:CheckVersion(version, targetVersion)
+	local mainVersion, subVersion = strsplit(".", version)
+	targetVersion = targetVersion or addon.db.version or "0.0"
+	local currentMainVersion, currentSubVersion = strsplit(".", targetVersion)
+	mainVersion, subVersion = tonumber(mainVersion), tonumber(subVersion)
+	currentMainVersion, currentSubVersion = tonumber(currentMainVersion), tonumber(currentSubVersion)
+
+	if mainVersion < currentMainVersion or (mainVersion == currentMainVersion and subVersion < currentSubVersion) then
+		return true
+	end
+
+	return false
+end
