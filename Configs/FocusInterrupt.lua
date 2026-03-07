@@ -23,7 +23,8 @@ addon.configurationList[MOD_KEY] = {
     ShowKickIcons = true,
     ShowDemoWarlockOnly = true,
     KickIconSize = 30,
-    KickIconAnchor = "BOTTOMLEFT",
+    KickIconX = -15,
+    KickIconY = 170,
     KickIconGrow = "RIGHT",
     -- global settings
     ShowTarget = true,
@@ -146,8 +147,12 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
         addon.db.FocusInterrupt.KickIconSize = value
         update()
     end)
-    local anchorDropdown = GUI:CreateDropdown(nil, L["Anchor"], addon.Utilities.Anchors, nil, addon.db.FocusInterrupt.KickIconAnchor, function(value)
-        addon.db.FocusInterrupt.KickIconAnchor = value
+    local iconXSlider = GUI:CreateSlider(nil, L["X"], -2000, 2000, 1, addon.db.FocusInterrupt.KickIconX, function(value)
+        addon.db.FocusInterrupt.KickIconX = value
+        update()
+    end)
+    local iconYSlider = GUI:CreateSlider(nil, L["Y"], -1000, 1000, 1, addon.db.FocusInterrupt.KickIconY, function(value)
+        addon.db.FocusInterrupt.KickIconY = value
         update()
     end)
     local growDropdown = GUI:CreateDropdown(nil, L["Grow"], addon.Utilities.Grows, nil, addon.db.FocusInterrupt.KickIconGrow, function(value)
@@ -158,18 +163,25 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
         addon.db.FocusInterrupt.ShowKickIcons = value
         demoWarlockOnlyCheckBox:SetDisabled(not value)
         iconSizeSlider:SetDisabled(not value)
-        anchorDropdown:SetDisabled(not value)
+        iconXSlider:SetDisabled(not value)
+        iconYSlider:SetDisabled(not value)
         growDropdown:SetDisabled(not value)
         addon:ShowDialog(ADDON_NAME.."RLNeeded")
     end)
+    iconSizeSlider:SetRelativeWidth(0.24)
+    iconXSlider:SetRelativeWidth(0.24)
+    iconYSlider:SetRelativeWidth(0.24)
+    growDropdown:SetRelativeWidth(0.24)
     demoWarlockOnlyCheckBox:SetDisabled(not addon.db.FocusInterrupt.ShowKickIcons)
     iconSizeSlider:SetDisabled(not addon.db.FocusInterrupt.ShowKickIcons)
-    anchorDropdown:SetDisabled(not addon.db.FocusInterrupt.ShowKickIcons)
+    iconXSlider:SetDisabled(not addon.db.FocusInterrupt.ShowKickIcons)
+    iconYSlider:SetDisabled(not addon.db.FocusInterrupt.ShowKickIcons)
     growDropdown:SetDisabled(not addon.db.FocusInterrupt.ShowKickIcons)
     interruptIconsGroup:AddChild(demoWarlockOnlyCheckBox)
     GUI:CreateInformationTag(interruptIconsGroup, "\n")
     interruptIconsGroup:AddChild(iconSizeSlider)
-    interruptIconsGroup:AddChild(anchorDropdown)
+    interruptIconsGroup:AddChild(iconXSlider)
+    interruptIconsGroup:AddChild(iconYSlider)
     interruptIconsGroup:AddChild(growDropdown)
 
     -- MARK: Core - Sound

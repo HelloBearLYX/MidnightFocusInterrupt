@@ -16,6 +16,8 @@ local FocusInterrupt = {
     modName = "FocusInterrupt",
     frame = CreateFrame("Frame", ADDON_NAME .. "_FocusInterrupt", UIParent),
     bars = {},
+    kickIcon = nil,
+    subKickIcon = nil,
 }
 
 -- MARK: Constants
@@ -36,21 +38,29 @@ local INTERRUPT_BY_CLASS = {
     WARRIOR = {DEFAULT = 6552}, -- Pummel
 }
 
+-- MARK: Data Migration
+
+local function DataMigration(self, version)
+    -- 3.13: remove kick Icon Anchor, as it use it own x and y
+    if not addon.db[self.modName].version or addon.Utilities:CheckVersion(addon.db[self.modName].version, version) then
+        addon.Utilities:print("Found old data, migrate data for FocusInterrupt")
+        local oldDBKeys = {"KickIconAnchor"}
+        for _, key in pairs(oldDBKeys) do
+            if addon.db[self.modName][key] then
+                addon.db[self.modName][key] = nil
+            end
+        end
+
+        addon.db[self.modName].version = addon.version
+    end
+end
+
 -- MARK: Initialize
 
 ---Initialize(Constructor)
 ---@return FocusInterrupt FocusInterrupt a FocusInterrupt object
 function FocusInterrupt:Initialize()
-    -- after 3.8, as implemented target bar, we need to migrate part of the database to new format(for style settings)
-    local oldDBKeys = {"BackgroundAlpha", "Width", "Height", "X", "Y", "IconZoom", "Font", "FontSize"}
-    for _, key in pairs(oldDBKeys) do
-        if addon.db[self.modName][key] then
-            addon.Utilities:print("Migrating data: " .. key)
-            addon.db[self.modName]["focus" .. key] = addon.db[self.modName][key]
-        end
-
-        addon.db[self.modName][key] = nil -- remove old keys after migration
-    end
+    DataMigration(self, "3.13")
 
     self.bars.focus = self:CreateBar()
     self.bars.focus.active = false
@@ -113,6 +123,28 @@ local function GetBarColor(self, interrupted, notInterruptible, isInterruptReady
     return color
 end
 
+-- MARK: Activate Components
+
+local function ActivateComponent(self, active, unit)
+    if active then
+        self.bars[unit]:Show()
+    else
+        self.bars[unit]:Hide()
+    end
+
+    if self.kickIcon and active and self.kickIcon.active then
+       self.kickIcon:Show()
+    elseif self.kickIcon then
+        self.kickIcon:Hide()
+    end
+
+    if self.subInterrupt and self.subKickIcon and active and self.subKickIcon.active then
+        self.subKickIcon:Show()
+    elseif self.subKickIcon then
+        self.subKickIcon:Hide()
+    end
+end
+
 ---Get Interrupter from GUID
 ---@param guid string GUID for the interrupter
 ---@return string name name of the interrupter
@@ -129,30 +161,31 @@ end
 
 ---Update kick icons, make sure icons are instantialized before use this
 ---@param self FocusInterrupt self
----@param unit string unit key for the bar's icon to be updated
-local function UpdateKickIconsStyle(self, unit)
-    local anchorFrom, anchorTo = addon.Utilities:GetAnchorFrom(addon.db[self.modName]["KickIconAnchor"]), addon.db[self.modName]["KickIconAnchor"]
+local function UpdateKickIconsStyle(self)
+    -- local anchorFrom, anchorTo = addon.Utilities:GetAnchorFrom(addon.db[self.modName]["KickIconAnchor"]), addon.db[self.modName]["KickIconAnchor"]
     local anchorChild, anchorParent = addon.Utilities:GetGrowAnchors(addon.db[self.modName]["KickIconGrow"])
 
-    self.bars[unit].kickIcon:SetSize(addon.db[self.modName]["KickIconSize"], addon.db[self.modName]["KickIconSize"])
-    self.bars[unit].kickIcon:ClearAllPoints()
-    self.bars[unit].kickIcon:SetPoint(anchorFrom, self.bars[unit], anchorTo, 0, 0)
-    self.bars[unit].kickIcon.icon:SetTexCoord(
-        addon.db[self.modName][unit .. "IconZoom"],
-        1 - addon.db[self.modName][unit .. "IconZoom"],
-        addon.db[self.modName][unit .. "IconZoom"],
-        1 - addon.db[self.modName][unit .. "IconZoom"]
-    )
+    if self.kickIcon then
+        self.kickIcon:SetSize(addon.db[self.modName]["KickIconSize"], addon.db[self.modName]["KickIconSize"])
+        self.kickIcon:ClearAllPoints()
+        self.kickIcon:SetPoint("CENTER", UIParent, "CENTER", addon.db[self.modName]["KickIconX"], addon.db[self.modName]["KickIconY"])
+        self.kickIcon.icon:SetTexCoord(
+            addon.db[self.modName]["focusIconZoom"],
+            1 - addon.db[self.modName]["focusIconZoom"],
+            addon.db[self.modName]["focusIconZoom"],
+            1 - addon.db[self.modName]["focusIconZoom"]
+        )
+    end
 
-    if self.bars[unit].subKickIcon then
-        self.bars[unit].subKickIcon:SetSize(addon.db[self.modName]["KickIconSize"], addon.db[self.modName]["KickIconSize"])
-        self.bars[unit].subKickIcon:ClearAllPoints()
-        self.bars[unit].subKickIcon:SetPoint(anchorChild, self.bars[unit].kickIcon, anchorParent, 0, 0)
-        self.bars[unit].subKickIcon.icon:SetTexCoord(
-            addon.db[self.modName][unit .. "IconZoom"],
-            1 - addon.db[self.modName][unit .. "IconZoom"],
-            addon.db[self.modName][unit .. "IconZoom"],
-            1 - addon.db[self.modName][unit .. "IconZoom"]
+    if self.subKickIcon then
+        self.subKickIcon:SetSize(addon.db[self.modName]["KickIconSize"], addon.db[self.modName]["KickIconSize"])
+        self.subKickIcon:ClearAllPoints()
+        self.subKickIcon:SetPoint(anchorChild, self.kickIcon, anchorParent, 0, 0)
+        self.subKickIcon.icon:SetTexCoord(
+            addon.db[self.modName]["focusIconZoom"],
+            1 - addon.db[self.modName]["focusIconZoom"],
+            addon.db[self.modName]["focusIconZoom"],
+            1 - addon.db[self.modName]["focusIconZoom"]
         )
     end
 end
@@ -161,27 +194,26 @@ end
 
 ---Set Interrupt Icons if needed
 ---@param self FocusInterrupt self
----@param unit string unit key for the bar's icon to be updated
 ---@param interrupted boolean if the cast is already interrupted
 ---@param notInterruptible boolean if the cast is not-interruptible
 ---@param isInterruptReady boolean if the interrupt ready
 ---@param subInterruptReady boolean? if the sub-interrupt ready
-local function UpdateKickIcons(self, unit, interrupted, notInterruptible, isInterruptReady, subInterruptReady)
-    if self.bars[unit].kickIcon then
+local function UpdateKickIcons(self, interrupted, notInterruptible, isInterruptReady, subInterruptReady)
+    if self.kickIcon then
         if interrupted then -- if interrupted already, just hide both icons
-            self.bars[unit].kickIcon:SetAlphaFromBoolean(interrupted, 0, 255)
+            self.kickIcon:SetAlphaFromBoolean(interrupted, 0, 255)
             if self.subInterrupt then
-                self.bars[unit].subKickIcon:SetAlphaFromBoolean(interrupted, 0, 255)
+                self.subKickIcon:SetAlphaFromBoolean(interrupted, 0, 255)
             end
             return
         end
 
-        self.bars[unit].kickIcon:SetAlphaFromBoolean(isInterruptReady)
-        self.bars[unit].kickIcon:SetAlphaFromBoolean(notInterruptible, 0, self.bars[unit].kickIcon:GetAlpha())
+        self.kickIcon:SetAlphaFromBoolean(isInterruptReady)
+        self.kickIcon:SetAlphaFromBoolean(notInterruptible, 0, self.kickIcon:GetAlpha())
 
         if self.subInterrupt then
-            self.bars[unit].subKickIcon:SetAlphaFromBoolean(subInterruptReady)
-            self.bars[unit].subKickIcon:SetAlphaFromBoolean(notInterruptible, 0, self.bars[unit].subKickIcon:GetAlpha())
+            self.subKickIcon:SetAlphaFromBoolean(subInterruptReady)
+            self.subKickIcon:SetAlphaFromBoolean(notInterruptible, 0, self.subKickIcon:GetAlpha())
         end
     end
 end
@@ -204,7 +236,7 @@ local function InterruptHandler(self, unit, guid)
     local color = GetBarColor(self, true, false, false, false) -- change color to interrupted color
     self.bars[unit].statusBar:GetStatusBarTexture():SetVertexColor(color:GetRGBA())
 
-    UpdateKickIcons(self, unit, true, false, false, false) -- hide interrupt icons
+    UpdateKickIcons(self, true, false, false, false) -- hide interrupt icons
     self.bars[unit].active = false
 
     if self.bars[unit].timer then
@@ -213,7 +245,7 @@ local function InterruptHandler(self, unit, guid)
 
     self.bars[unit].timer = C_Timer.NewTimer(addon.db[self.modName]["InterruptedFadeTime"], function ()
         self.bars[unit].timer = nil
-        self.bars[unit]:Hide()
+        ActivateComponent(self, false, unit)
     end)
 end
 
@@ -272,7 +304,7 @@ local function OnUpdate(self, unit, duration, isChannel, notInterruptible)
     self.bars[unit].statusBar:GetStatusBarTexture():SetVertexColor(color:GetRGBA())
 
     -- handle interrupt icons
-    UpdateKickIcons(self, unit, false, notInterruptible, isInterruptReady, subInterruptReady)
+    UpdateKickIcons(self, false, notInterruptible, isInterruptReady, subInterruptReady)
 
     -- Hidden-Control
         -- As secret-value cannot compute, even compare between secret-values are not allowed
@@ -305,52 +337,59 @@ end
 
 -- MARK: Create KickIcon
 
-local function CreateKickIcon(self,unit)
-    local kickIcon = CreateFrame("Frame", nil, self.bars[unit])
+local function CreateKickIcon(self)
+    local kickIcon = CreateFrame("Frame", nil, self.frame)
     kickIcon.border = CreateFrame("Frame", nil, kickIcon, "BackdropTemplate")
     kickIcon.border:SetAllPoints()
     kickIcon.border:SetBackdrop({edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1, insets = {left = 1, right = 1, top = 1, bottom = 1}})
     kickIcon.border:SetBackdropBorderColor(0, 0, 0, 1)
     kickIcon.icon = kickIcon:CreateTexture(nil, "ARTWORK")
     kickIcon.icon:SetAllPoints()
+    kickIcon:Hide()
 
     return kickIcon
 end
 
 -- MARK: Update InterruptID
 
-local function LoadInterruptIcon(self, unit)
+local function LoadInterruptIcon(self)
     -- if show kick icon and (not only demo warlock or (only demo warlock and spec is demo)) -> show kick icon
     if addon.db[self.modName]["ShowKickIcons"] and (not addon.db[self.modName]["ShowDemoWarlockOnly"] or (addon.db[self.modName]["ShowDemoWarlockOnly"] and self.subInterrupt)) then
         if self.subInterrupt then -- if demo warlock, load two icons
-            if not self.bars[unit].kickIcon then
-                self.bars[unit].kickIcon = CreateKickIcon(self, unit)
+            if not self.kickIcon then
+                self.kickIcon = CreateKickIcon(self)
             end
-            if not self.bars[unit].subKickIcon then
-                self.bars[unit].subKickIcon = CreateKickIcon(self, unit)
+            self.kickIcon.active = true
+
+            if not self.subKickIcon then
+                self.subKickIcon = CreateKickIcon(self)
             end
+            self.subKickIcon.active = true
         else -- if not demo warlock, only load main kick icon
-            if not self.bars[unit].kickIcon then
-                self.bars[unit].kickIcon = CreateKickIcon(self, unit)
+            if not self.kickIcon then
+                self.kickIcon = CreateKickIcon(self)
             end
-            if self.bars[unit].subKickIcon then
-                self.bars[unit].subKickIcon:Hide()
+            self.kickIcon.active = true
+
+            if self.subKickIcon then
+                self.subKickIcon:Hide()
+                self.subKickIcon.active = false
             end
         end
 
-        UpdateKickIconsStyle(self, unit) -- update icons' position and size according to settings
-        self.bars[unit].kickIcon.icon:SetTexture(C_Spell.GetSpellInfo(self.interruptID).iconID or UNKNOWN_SPELL_TEXTURE) -- set main kick icon texture
-        self.bars[unit].kickIcon:Show()
-        if self.bars[unit].subKickIcon and self.subInterrupt then
-            self.bars[unit].subKickIcon.icon:SetTexture(C_Spell.GetSpellInfo(self.subInterrupt).iconID or UNKNOWN_SPELL_TEXTURE) -- set sub kick icon texture
-            self.bars[unit].subKickIcon:Show()
+        UpdateKickIconsStyle(self) -- update icons' position and size according to settings
+        self.kickIcon.icon:SetTexture(C_Spell.GetSpellInfo(self.interruptID).iconID or UNKNOWN_SPELL_TEXTURE) -- set main kick icon texture
+        if self.subKickIcon and self.subInterrupt then
+            self.subKickIcon.icon:SetTexture(C_Spell.GetSpellInfo(self.subInterrupt).iconID or UNKNOWN_SPELL_TEXTURE) -- set sub kick icon texture
         end
     else
-        if self.bars[unit].kickIcon then
-            self.bars[unit].kickIcon:Hide()
+        if self.kickIcon then
+            self.kickIcon:Hide()
+            self.kickIcon.active = false
         end
-        if self.bars[unit].subKickIcon then
-            self.bars[unit].subKickIcon:Hide()
+        if self.subKickIcon then
+            self.subKickIcon:Hide()
+            self.subKickIcon.active = false
         end
     end
 end
@@ -373,7 +412,7 @@ end
 local function Handler(self, unit)
     if addon.db[self.modName][unit .. "HideFriendly"] and UnitIsFriend("player", unit) then
         self.bars[unit].active = false
-        self.bars[unit]:Hide()
+        ActivateComponent(self, false, unit)
         return
     end
 
@@ -390,7 +429,7 @@ local function Handler(self, unit)
     if not name then -- not a cast (for switching focus to a new unit)
         -- if the new focus is not casting, halt it 
         self.bars[unit].active = false
-        self.bars[unit]:Hide()
+        ActivateComponent(self, false, unit)
         return
     end
 
@@ -408,7 +447,8 @@ local function Handler(self, unit)
     if addon.db[self.modName]["ShowTarget"] and target then
         local color = C_ClassColor.GetClassColor(UnitSpellTargetClass(unit) or "PRIEST"):GenerateHexColor() -- 8 digits Hex(also secret-value, do not directly compute it)
         local targetNameTrimed = (select(1, UnitName(target))) or target -- trim server name for formatting
-        self.bars[unit].spellText:SetText(string.format("%.16s-|c%s%.16s|r", name, color, targetNameTrimed))
+        -- limit the spell and target name with 24 characters to match the maximum number of zhCN character name length
+        self.bars[unit].spellText:SetText(string.format("%.24s-|c%s%.24s|r", name, color, targetNameTrimed))
     else
         self.bars[unit].spellText:SetText(name)
     end
@@ -435,7 +475,7 @@ local function Handler(self, unit)
         PlaySoundFile(addon.LSM:Fetch("sound", addon.db[self.modName]["SoundMedia"]), addon.db[self.modName]["SoundChannel"])
     end
 
-    self.bars[unit]:Show()
+    ActivateComponent(self, true, unit) -- show components if they are hidden by settings
 end
 
 -- MARK: Update Bar Style
@@ -543,9 +583,10 @@ function FocusInterrupt:UpdateStyle()
 
     for unit, _ in pairs(self.bars) do
         UpdateBarStyle(self, unit)
-        if self.bars[unit].kickIcon then
-            UpdateKickIconsStyle(self, unit) -- update icons if exist
-        end
+    end
+
+    if self.kickIcon then
+        UpdateKickIconsStyle(self) -- update icons if exist
     end
 end
 
@@ -556,7 +597,7 @@ end
 function FocusInterrupt:Test(on)
     if not addon.db[self.modName]["Enabled"] or addon.db[self.modName]["Hidden"] then
         for unit, _ in pairs(self.bars) do
-            self.bars[unit]:Hide()
+            ActivateComponent(self, false, unit)
             self.bars[unit].active = false
         end
         return
@@ -582,17 +623,21 @@ function FocusInterrupt:Test(on)
             OnUpdate(self, unit, testDuration, false, false)
         end)
 
-        self.bars[unit]:Show()
+        ActivateComponent(self, true, unit)
     end
 
     if on then
         for unit, _ in pairs(self.bars) do
             TestBar(unit)
         end
+
+        if self.kickIcon and self.kickIcon.active then
+            addon.Utilities:MakeFrameDragPosition(self.kickIcon, self.modName, "KickIconX", "KickIconY")
+        end
     else
         for unit, _ in pairs(self.bars) do
             self.bars[unit].active = false
-            self.bars[unit]:Hide()
+            ActivateComponent(self, false, unit)
         end
     end
 end
@@ -616,7 +661,7 @@ function FocusInterrupt:RegisterEvents() -- for cast-start events
         local unit = select(1, ...)
         if not self.bars[unit].timer then -- since the stop-cast events also triggered after the interrupted-events, must avoid stop-cast events override the interrupted-events
             self.bars[unit].active = false
-            self.bars[unit]:Hide()
+            ActivateComponent(self, false, unit)
         end
     end
 
