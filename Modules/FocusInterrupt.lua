@@ -223,15 +223,16 @@ end
 ---Interrupt Handler
 ---@param self FocusInterrupt self
 ---@param unit string the unit being interrupted
----@param guid integer the GUID of the interrupter
+---@param guid string GUID for the interrupter
 local function InterruptHandler(self, unit, guid)
     local interrupter, class = GetInterrupter(guid)
-    local color = C_ClassColor.GetClassColor(class or "PRIEST"):GenerateHexColor() -- also secret-value
 
     if addon.db[self.modName]["ShowInterrupter"] then
-        self.bars[unit].spellText:SetText(L["Interrupted"] .. ": |c".. color .. interrupter .. "|r")
+        self.bars[unit].spellText:SetText(L["Interrupted"] .. ": " .. C_ClassColor.GetClassColor(class or "PRIEST"):WrapTextInColorCode(interrupter))
+        self.bars[unit].targetText:SetText("")
     else
         self.bars[unit].spellText:SetText(L["Interrupted"])
+        self.bars[unit].targetText:SetText("")
     end
     local color = GetBarColor(self, true, false, false, false) -- change color to interrupted color
     self.bars[unit].statusBar:GetStatusBarTexture():SetVertexColor(color:GetRGBA())
@@ -444,16 +445,15 @@ local function Handler(self, unit)
     -- handle target
     -- channel target is not naturally provided through API, a complicated way is to use focus's target but involves more events and too much excessive information
     local target = UnitSpellTargetName(unit) -- only attempt to get non-channel cast target
-    if addon.db[self.modName]["ShowTarget"] and target then
-        local color = C_ClassColor.GetClassColor(UnitSpellTargetClass(unit) or "PRIEST"):GenerateHexColor() -- 8 digits Hex(also secret-value, do not directly compute it)
+    if target then
         local targetNameTrimed = (select(1, UnitName(target))) or target -- trim server name for formatting
         -- limit the spell and target name with 24 characters to match the maximum number of zhCN character name length
-        self.bars[unit].spellText:SetText(string.format("%.24s-|c%s%.24s|r", name, color, targetNameTrimed))
+        self.bars[unit].spellText:SetText(name)
+        self.bars[unit].targetText:SetText(C_ClassColor.GetClassColor(UnitSpellTargetClass(unit) or "PRIEST"):WrapTextInColorCode(targetNameTrimed))
     else
         self.bars[unit].spellText:SetText(name)
+        self.bars[unit].targetText:SetText("")
     end
-
-    
 
     -- handle icon
     self.bars[unit].icon:SetTexture(texture or UNKNOWN_SPELL_TEXTURE)
@@ -508,23 +508,37 @@ local function UpdateBarStyle(self, unit)
     self.bars[unit].statusBar:SetSize(addon.db[self.modName][unit .. "Width"] - addon.db[self.modName][unit .. "Height"], addon.db[self.modName][unit .. "Height"])
     self.bars[unit].statusBar:GetStatusBarTexture():SetVertexColor(self.interruptibleColor:GetRGBA())
 
-    -- font/text positions/
-    -- left texts(spell + target)
-    -- after 3.2, allow change the font size but change the margin to 0 for formatting more information
+    -- font/text positions
+    local realLength = addon.db[self.modName][unit .. "Width"] - addon.db[self.modName][unit .. "Height"]
+    -- spell text
     self.bars[unit].spellText:SetFont(
         addon.LSM:Fetch("font", addon.db[self.modName][unit .. "Font"]) or "Fonts\\FRIZQT__.TTF",
         addon.db[self.modName][unit .. "FontSize"],
         "OUTLINE"
     )
     self.bars[unit].spellText:SetPoint("LEFT", self.bars[unit], "LEFT", addon.db[self.modName][unit .. "Height"], 0)
-    self.bars[unit].spellText:SetSize(0.7 * (addon.db[self.modName][unit .. "Width"] - addon.db[self.modName][unit .. "Height"]), addon.db[self.modName][unit .. "FontSize"]) -- how much propotion of space is allowd
-    -- right texts(time)
+    self.bars[unit].spellText:SetSize(addon.db[self.modName]["SpellProportion"] * realLength, addon.db[self.modName][unit .. "FontSize"]) -- how much propotion of space is allowd
+    -- target text
+    self.bars[unit].targetText:SetFont(
+        addon.LSM:Fetch("font", addon.db[self.modName][unit .. "Font"]) or "Fonts\\FRIZQT__.TTF",
+        addon.db[self.modName][unit .. "FontSize"],
+        "OUTLINE"
+    )
+
+    self.bars[unit].targetText:SetSize(addon.db[self.modName]["TargetProportion"] * realLength, addon.db[self.modName][unit .. "FontSize"]) -- how much propotion of space is allowd
+    if addon.db[self.modName]["ShowTarget"] then
+        self.bars[unit].targetText:Show()
+    else
+        self.bars[unit].targetText:Hide()
+    end
+
+    -- time text
     self.bars[unit].timeText:SetFont(
         addon.LSM:Fetch("font", addon.db[self.modName][unit .. "Font"]) or "Fonts\\FRIZQT__.TTF",
         addon.db[self.modName][unit .. "FontSize"],
         "OUTLINE"
     )
-    self.bars[unit].timeText:SetSize(0.3 * (addon.db[self.modName][unit .. "Width"] - addon.db[self.modName][unit .. "Height"]), addon.db[self.modName][unit .. "FontSize"]) -- how much propotion of space is allowd
+    self.bars[unit].timeText:SetSize(addon.db[self.modName]["TimeProportion"] * realLength, addon.db[self.modName][unit .. "FontSize"]) -- how much propotion of space is allowd
 end
 
 -- public methods
@@ -558,14 +572,18 @@ function FocusInterrupt:CreateBar()
     bar.textFrame:SetAllPoints()
     bar.textFrame:SetFrameLevel(bar:GetFrameLevel() + 10)
     -- set spell text
-    bar.spellText = bar.textFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    bar.spellText = bar.textFrame:CreateFontString(nil, "OVERLAY")
     bar.spellText:SetJustifyH("LEFT")
     bar.spellText:SetTextColor(1, 1, 1, 1)
+    -- set target text
+    bar.targetText = bar.textFrame:CreateFontString(nil, "OVERLAY")
+    bar.targetText:SetJustifyH("LEFT")
+    bar.targetText:SetPoint("LEFT", bar.spellText, "RIGHT", 0, 0)
     -- set time text
-    bar.timeText = bar.textFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    bar.timeText:SetPoint("RIGHT", bar, "RIGHT", 0, 0)
+    bar.timeText = bar.textFrame:CreateFontString(nil, "OVERLAY")
     bar.timeText:SetJustifyH("RIGHT")
     bar.timeText:SetTextColor(1, 1, 1, 1)
+    bar.timeText:SetPoint("RIGHT", bar, "RIGHT", 0, 0)
 
     return bar
 end
@@ -606,12 +624,9 @@ function FocusInterrupt:Test(on)
     local function TestBar(unit)
         -- generate a demo cast bar
         self.bars[unit].active = true
-        local name, target = "MaximumTestSpell", "Target"
-        if addon.db[self.modName]["ShowTarget"] then
-            self.bars[unit].spellText:SetText(string.sub(name, 1, 16) .. "-" .. "|c" .. C_ClassColor.GetClassColor("WARLOCK"):GenerateHexColor() .. target .. "|r")
-        else
-            self.bars[unit].spellText:SetText(string.sub(name, 1, 16))
-        end
+        local name, target = "TestSpell", "Target"
+        self.bars[unit].spellText:SetText(name)
+        self.bars[unit].targetText:SetText(C_ClassColor.GetClassColor("WARLOCK"):WrapTextInColorCode(target))
         
         self.bars[unit].icon:SetTexture(UNKNOWN_SPELL_TEXTURE)
         self.bars[unit].statusBar:SetMinMaxValues(0, 30)

@@ -31,6 +31,9 @@ addon.configurationList[MOD_KEY] = {
     ShowInterrupter = true,
     ShowTotalTime = true,
     FrameStrata = "HIGH",
+    SpellProportion = 0,
+    TargetProportion = 0,
+    TimeProportion = 0,
     -- bar-wise style settings
     focusBackgroundAlpha = 0.3,
     focusWidth = 280,
@@ -130,11 +133,26 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
         update()
     end):SetRelativeWidth(0.25)
     local textGroup = GUI:CreateInlineGroup(interruptGroup, L["TextSettings"])
+    GUI:CreateInformationTag(textGroup, L["TextProportionDesc"], "LEFT")
     GUI:CreateToggleCheckBox(textGroup, L["ShowTotalTime"], addon.db.FocusInterrupt.ShowTotalTime, function(value)
         addon.db.FocusInterrupt.ShowTotalTime = value
     end)
+    GUI:CreateSlider(textGroup, L["TimeProportion"], 0, 1, 0.01, addon.db.FocusInterrupt.TimeProportion, function(value)
+        addon.db.FocusInterrupt.TimeProportion = value
+        update()
+    end)
+    GUI:CreateInformationTag(textGroup, "\n")
     GUI:CreateToggleCheckBox(textGroup, L["ShowTarget"], addon.db.FocusInterrupt.ShowTarget, function(value)
         addon.db.FocusInterrupt.ShowTarget = value
+        update()
+    end)
+    GUI:CreateSlider(textGroup, L["SpellProportion"], 0, 1, 0.01, addon.db.FocusInterrupt.SpellProportion, function(value)
+        addon.db.FocusInterrupt.SpellProportion = value
+        update()
+    end)
+    GUI:CreateSlider(textGroup, L["TargetProportion"], 0, 1, 0.01, addon.db.FocusInterrupt.TargetProportion, function(value)
+        addon.db.FocusInterrupt.TargetProportion = value
+        update()
     end)
     -- MARK: Core - Kick Icons
     local interruptIconsGroup = GUI:CreateInlineGroup(interruptGroup, L["InterruptIconsSettings"])

@@ -116,6 +116,10 @@ L["InterruptedSettingsDesc"] = "When the focus is interrupted, there is a short 
 L["InterruptIconsSettings"] = "Interrupt Icon Settings"
 L["InterruptIconDesc"] = "When the player is capable of interrupt(interruptible + interrupt ready), display an icon of interrupt\n\nThis is mainly designed for Demonology Warlock, display which interrupt is available"
 L["ShowDemoWarlockOnly"] = "Show Only Demonology"
+L["TextProportionDesc"] = "As Blizzard restricted the way of limiting secret string length(03/21/26), the lengths of spell name and target name must be limited with the following method:\nChoose how much proportion of the cast bar the text can take, the length of the string will not exceed the space limits\n0 proportion means no length limit to the text\n"
+L["SpellProportion"] = "Spell Proportion"
+L["TargetProportion"] = "Target Proportion"
+L["TimeProportion"] = "Time Proportion"
 -- Target Interrupt Settings
 L["TargetBarSettings"] = "Target Cast Bar Settings"
 L["TargetBarSettingsDesc"] = "|cffffff00Enable a target cast bar as same as the focus cast bar|r. Most settings are shared, only the style settings below are independent."
