@@ -19,9 +19,7 @@ L["Release_Info"] = "The official release version is |cffff0000only available on
 
 -- MARK: Change Log
 L["ChangeLog"] = "Change Log"
-L["ChangeLogContent"] =
-"v3.13\n" ..
-"-Focus Interrupt: seperate interrupt icon from cast bars, make it an independent sub-module\n"
+L["ChangeLogContent"] = "The full change log can be found on: \n https://discord.gg/NkjEKddwDr"
 
 --MARK: Issues
 L["Issues"] = "Issues"
