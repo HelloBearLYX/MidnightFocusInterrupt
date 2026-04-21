@@ -86,7 +86,8 @@ local function GetInterruptSpellID(self)
     self.subInterrupt = nil
 
     if addon.states["playerSpec"] == 266 then -- demonology warlock
-        self.subInterrupt = INTERRUPT_BY_CLASS[addon.states["playerClass"]].DEMONOLOGY_SUB
+        -- 12.05 the GRIMOIRE and subInterrupt was removed from demo warlock, temperarily keep the code but diasable this function
+        -- self.subInterrupt = INTERRUPT_BY_CLASS[addon.states["playerClass"]].DEMONOLOGY_SUB
         output = INTERRUPT_BY_CLASS[addon.states["playerClass"]].DEMONOLOGY
     elseif addon.states["playerSpec"] == 102 then -- balance druid
         output = INTERRUPT_BY_CLASS[addon.states["playerClass"]].BALANCE
@@ -446,8 +447,8 @@ local function Handler(self, unit)
     -- channel target is not naturally provided through API, a complicated way is to use focus's target but involves more events and too much excessive information
     local target = UnitSpellTargetName(unit) -- only attempt to get non-channel cast target
     if target then
-        local targetNameTrimed = (select(1, UnitName(target))) or target -- trim server name for formatting
-        -- limit the spell and target name with 24 characters to match the maximum number of zhCN character name length
+        local targetToken = unit .. "target"
+        local targetNameTrimed = (select(1, UnitName(targetToken))) or target -- trim server name for formatting
         self.bars[unit].spellText:SetText(name)
         self.bars[unit].targetText:SetText(C_ClassColor.GetClassColor(UnitSpellTargetClass(unit) or "PRIEST"):WrapTextInColorCode(targetNameTrimed))
     else

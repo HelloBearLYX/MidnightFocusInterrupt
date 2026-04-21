@@ -1,9 +1,9 @@
-## Interface: 120000,120001
+## Interface: 120000,120001,120005
 ## Title: MidnightFocusInterrupt
 ## Notes: Focus Cast Bar Replacement which integrated with Interrupt Ready and Interruptible filter which greatly helps accuracy of interrupts
 ## Author: HBLyx
 ## OptionalDeps: LibSharedMedia-3.0, AceConfig-3.0
-## Version: 3.13.1
+## Version: 3.14.2
 ## SavedVariables: MidnightFocusInterrupt_DB
 ## IconTexture: Interface\AddOns\MidnightFocusInterrupt\Media\HBLyx.png
 ## Category: CastBar
