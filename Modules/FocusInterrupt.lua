@@ -447,8 +447,11 @@ local function Handler(self, unit)
     -- channel target is not naturally provided through API, a complicated way is to use focus's target but involves more events and too much excessive information
     local target = UnitSpellTargetName(unit) -- only attempt to get non-channel cast target
     if target then
-        local targetToken = unit .. "target"
-        local targetNameTrimed = (select(1, UnitName(targetToken))) or target -- trim server name for formatting
+        local targetNameTrimed = target
+        if not issecretvalue(target) then
+            targetNameTrimed = (select(1, UnitName(target))) or target -- trim server name for formatting if possible
+        end
+
         self.bars[unit].spellText:SetText(name)
         self.bars[unit].targetText:SetText(C_ClassColor.GetClassColor(UnitSpellTargetClass(unit) or "PRIEST"):WrapTextInColorCode(targetNameTrimed))
     else
