@@ -1,4 +1,4 @@
-## Interface: 120000,120001,120005
+## Interface: 120000,120001,120005,120007
 ## Title: MidnightFocusInterrupt
 ## Notes: Focus Cast Bar Replacement which integrated with Interrupt Ready and Interruptible filter which greatly helps accuracy of interrupts
 ## Author: HBLyx
