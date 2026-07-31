@@ -124,3 +124,9 @@ L["TimeProportion"] = "时间比例"
 -- Target Interrupt Settings
 L["TargetBarSettings"] = "目标施法条设置"
 L["TargetBarSettingsDesc"] = "|cffffff00启用一个与焦点施法条相同的目标施法条|r。大部分设置是共享的, 只有下面的样式设置是独立的。"
+-- Spark Settings
+L["SparkSettings"] = "火花设置"
+L["SparkEnabled"] = "启用火花"
+L["KickSparkEnabled"] = "打断火花"
+L["SparkColor"] = "火花颜色"
+L["SparkWidth"] = "火花宽度"

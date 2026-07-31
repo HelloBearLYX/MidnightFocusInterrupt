@@ -121,3 +121,9 @@ L["TimeProportion"] = "Time Proportion"
 -- Target Interrupt Settings
 L["TargetBarSettings"] = "Target Cast Bar Settings"
 L["TargetBarSettingsDesc"] = "|cffffff00Enable a target cast bar as same as the focus cast bar|r. Most settings are shared, only the style settings below are independent."
+-- Spark Settings
+L["SparkSettings"] = "Spark Settings"
+L["SparkEnabled"] = "Enable Spark"
+L["KickSparkEnabled"] = "Kick Spark"
+L["SparkColor"] = "Spark Color"
+L["SparkWidth"] = "Spark Width"
