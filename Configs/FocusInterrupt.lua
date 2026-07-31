@@ -19,6 +19,10 @@ addon.configurationList[MOD_KEY] = {
     InterruptibleColor = "ff3fc7eb",
     InterruptedFadeTime = 0.75,
     Hidden = false,
+    Spark = false,
+    KickSpark = true,
+    SparkColor = "ffffffff",
+    SparkWidth = 2,
     -- Kick Icons settings
     ShowKickIcons = true,
     ShowDemoWarlockOnly = true,
@@ -48,13 +52,13 @@ addon.configurationList[MOD_KEY] = {
 
     EnabledTargetBar = false,
     targetBackgroundAlpha = 0.3,
-    targetWidth = 250,
-    targetHeight = 25,
+    targetWidth = 280,
+    targetHeight = 30,
     targetTexture = "Solid",
     targetFont = "",
-    targetFontSize = 10,
+    targetFontSize = 12,
     targetX = 0,
-    targetY = 100,
+    targetY = 160,
     targetIconZoom = 0.07,
     targetHideFriendly = false,
 }
@@ -70,7 +74,6 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
     -- MARK: General
     local frame = GUI:CreateScrollFrame(parent)
     frame:SetLayout("Flow")
-    GUI:CreateInformationTag(frame, L["FocusInterruptSettingsDesc"], "LEFT")
     GUI:CreateToggleCheckBox(frame, L["Enable"] .. "|cff0070DD" .. L["FocusInterruptSettings"] .. "|r", addon.db.FocusInterrupt.Enabled, function(value)
         addon.db.FocusInterrupt.Enabled = value
         if addon.core:HasModuleLoaded(MOD_KEY) then -- if module is loaded
@@ -132,6 +135,23 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
         addon.db.FocusInterrupt.InterruptedColor = value
         update()
     end):SetRelativeWidth(0.25)
+    local kickSparkGroup = GUI:CreateInlineGroup(interruptGroup, L["SparkSettings"])
+    GUI:CreateToggleCheckBox(kickSparkGroup, L["SparkEnabled"], addon.db.FocusInterrupt.Spark, function(value)
+        addon.db.FocusInterrupt.Spark = value
+        update()
+    end)
+    GUI:CreateToggleCheckBox(kickSparkGroup, L["KickSparkEnabled"], addon.db.FocusInterrupt.KickSpark, function(value)
+        addon.db.FocusInterrupt.KickSpark = value
+        update()
+    end)
+    GUI:CreateColorPicker(kickSparkGroup, L["SparkColor"], true, addon.db.FocusInterrupt.SparkColor, function(value)
+        addon.db.FocusInterrupt.SparkColor = value
+        update()
+    end)
+    GUI:CreateSlider(kickSparkGroup, L["SparkWidth"], 1, 10, 1, addon.db.FocusInterrupt.SparkWidth, function(value)
+        addon.db.FocusInterrupt.SparkWidth = value
+        update()
+    end)
     local textGroup = GUI:CreateInlineGroup(interruptGroup, L["TextSettings"])
     GUI:CreateInformationTag(textGroup, L["TextProportionDesc"], "LEFT")
     GUI:CreateToggleCheckBox(textGroup, L["ShowTotalTime"], addon.db.FocusInterrupt.ShowTotalTime, function(value)

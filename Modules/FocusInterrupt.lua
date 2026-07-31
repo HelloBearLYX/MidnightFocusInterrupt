@@ -22,6 +22,7 @@ local FocusInterrupt = {
 
 -- MARK: Constants
 local UNKNOWN_SPELL_TEXTURE = 134400
+local SPARK_WIDTH = 2
 local INTERRUPT_BY_CLASS = {
     DEATHKNIGHT = {DEFAULT = 47528}, -- Mind Freeze
     DEMONHUNTER = {DEFAULT = 183752}, -- Disrupt
@@ -38,30 +39,11 @@ local INTERRUPT_BY_CLASS = {
     WARRIOR = {DEFAULT = 6552, PROTECTION_SUB = 386071}, -- Pummel
 }
 
--- MARK: Data Migration
-
-local function DataMigration(self, version)
-    -- 3.13: remove kick Icon Anchor, as it use it own x and y
-    if not addon.db[self.modName].version or addon.Utilities:CheckVersion(addon.db[self.modName].version, version) then
-        addon.Utilities:print("Found old data, migrate data for FocusInterrupt")
-        local oldDBKeys = {"KickIconAnchor"}
-        for _, key in pairs(oldDBKeys) do
-            if addon.db[self.modName][key] then
-                addon.db[self.modName][key] = nil
-            end
-        end
-
-        addon.db[self.modName].version = addon.version
-    end
-end
-
 -- MARK: Initialize
 
 ---Initialize(Constructor)
 ---@return FocusInterrupt FocusInterrupt a FocusInterrupt object
 function FocusInterrupt:Initialize()
-    DataMigration(self, "3.13")
-
     self.bars.focus = self:CreateBar()
     self.bars.focus.active = false
 
@@ -485,6 +467,12 @@ local function Handler(self, unit)
     -- set the max time earlier for performance
     self.bars[unit].statusBar:SetMinMaxValues(0, duration:GetTotalDuration())
 
+    -- set the kick spark
+    self.bars[unit].kickSpark:SetMinMaxValues(0, duration:GetTotalDuration())
+    local cooldown = C_Spell.GetSpellCooldownDuration(self.interruptID, true)
+    self.bars[unit].kickSpark:SetValue(cooldown:GetRemainingDuration())
+    self.bars[unit].kickSpark:SetAlphaFromBoolean(cooldown:IsZero(), 0, 255)
+
     -- still use "OnUpdate", as there are many things we need to keep real-time update
     -- attempted to restrict the refresh rate(update interval), but a smooth function is highly demanded for it -> temperarily gave it up
     self.bars[unit]:SetScript("OnUpdate", function (_, _)
@@ -508,61 +496,90 @@ end
 ---@param self FocusInterrupt self
 ---@param unit string unit key for the bar to be updated style
 local function UpdateBarStyle(self, unit)
+    local bar = self.bars[unit]
     -- frame strata level for the bar
-    self.bars[unit]:SetFrameStrata(addon.db[self.modName]["FrameStrata"] or "HIGH")
+    bar:SetFrameStrata(addon.db[self.modName]["FrameStrata"] or "HIGH")
     -- basic size and position of bar
-    self.bars[unit]:SetSize(addon.db[self.modName][unit .. "Width"], addon.db[self.modName][unit .. "Height"])
-    self.bars[unit]:SetPoint("CENTER", UIParent, "CENTER", addon.db[self.modName][unit .. "X"], addon.db[self.modName][unit .. "Y"])
+    bar:SetSize(addon.db[self.modName][unit .. "Width"], addon.db[self.modName][unit .. "Height"])
+    bar:SetPoint("CENTER", UIParent, "CENTER", addon.db[self.modName][unit .. "X"], addon.db[self.modName][unit .. "Y"])
     
     -- background is kind of Blizzard's texture, only color and alpha are customizable
     self.bars[unit].background:SetColorTexture(0, 0, 0, addon.db[self.modName][unit .. "BackgroundAlpha"])
 
     -- icon zoom and size
-    self.bars[unit].icon:SetTexCoord( -- prevent Blizzard's raw icons' border and fill all space with texture
+    local icon = self.bars[unit].icon
+    icon:SetTexCoord( -- prevent Blizzard's raw icons' border and fill all space with texture
         addon.db[self.modName][unit .. "IconZoom"],
         1 - addon.db[self.modName][unit .. "IconZoom"],
         addon.db[self.modName][unit .. "IconZoom"],
         1 - addon.db[self.modName][unit .. "IconZoom"]
     )
-    self.bars[unit].icon:SetSize(addon.db[self.modName][unit .. "Height"], addon.db[self.modName][unit .. "Height"]) -- keep icon has the same height as bar and keep it a cube
+    icon:SetSize(addon.db[self.modName][unit .. "Height"], addon.db[self.modName][unit .. "Height"]) -- keep icon has the same height as bar and keep it a cube
 
     -- bar texture and size
     -- after 3.2, only keep one status bar instead of 3(1 bar + 2 overlays)
-    self.bars[unit].statusBar:SetStatusBarTexture(addon.LSM:Fetch("statusbar", addon.db[self.modName][unit .. "Texture"]))
-    self.bars[unit].statusBar:SetSize(addon.db[self.modName][unit .. "Width"] - addon.db[self.modName][unit .. "Height"], addon.db[self.modName][unit .. "Height"])
-    self.bars[unit].statusBar:GetStatusBarTexture():SetVertexColor(self.interruptibleColor:GetRGBA())
+    local totalWidth = addon.db[self.modName][unit .. "Width"] - addon.db[self.modName][unit .. "Height"]
+    local totalHeight = addon.db[self.modName][unit .. "Height"]
+    local statusBar = self.bars[unit].statusBar
+    statusBar:SetStatusBarTexture(addon.LSM:Fetch("statusbar", addon.db[self.modName][unit .. "Texture"]))
+    statusBar:SetSize(totalWidth, totalHeight)
+    statusBar:GetStatusBarTexture():SetVertexColor(self.interruptibleColor:GetRGBA())
+    local sparkColor = CreateColor(addon.Utilities:HexToRGB(addon.db[self.modName]["SparkColor"]))
+    local sparkWidth = addon.db[self.modName]["SparkWidth"] or SPARK_WIDTH
+    statusBar.spark:SetSize(sparkWidth, totalHeight)
+    statusBar.spark:SetColorTexture(sparkColor:GetRGBA())
+    if addon.db[self.modName]["Spark"] then
+        statusBar.spark:SetPoint("CENTER", statusBar:GetStatusBarTexture(), "RIGHT", 0, 0)
+    else
+        statusBar.spark:ClearAllPoints()
+    end
 
     -- font/text positions
     local realLength = addon.db[self.modName][unit .. "Width"] - addon.db[self.modName][unit .. "Height"]
     -- spell text
-    self.bars[unit].spellText:SetFont(
+    local spellText = self.bars[unit].spellText
+    spellText:SetFont(
         addon.LSM:Fetch("font", addon.db[self.modName][unit .. "Font"]) or "Fonts\\FRIZQT__.TTF",
         addon.db[self.modName][unit .. "FontSize"],
         "OUTLINE"
     )
-    self.bars[unit].spellText:SetPoint("LEFT", self.bars[unit], "LEFT", addon.db[self.modName][unit .. "Height"], 0)
-    self.bars[unit].spellText:SetSize(addon.db[self.modName]["SpellProportion"] * realLength, addon.db[self.modName][unit .. "FontSize"]) -- how much propotion of space is allowd
+    spellText:SetPoint("LEFT", self.bars[unit], "LEFT", addon.db[self.modName][unit .. "Height"], 0)
+    spellText:SetSize(addon.db[self.modName]["SpellProportion"] * realLength, addon.db[self.modName][unit .. "FontSize"]) -- how much propotion of space is allowd
     -- target text
-    self.bars[unit].targetText:SetFont(
+    local targetText = self.bars[unit].targetText
+    targetText:SetFont(
         addon.LSM:Fetch("font", addon.db[self.modName][unit .. "Font"]) or "Fonts\\FRIZQT__.TTF",
         addon.db[self.modName][unit .. "FontSize"],
         "OUTLINE"
     )
 
-    self.bars[unit].targetText:SetSize(addon.db[self.modName]["TargetProportion"] * realLength, addon.db[self.modName][unit .. "FontSize"]) -- how much propotion of space is allowd
+    targetText:SetSize(addon.db[self.modName]["TargetProportion"] * realLength, addon.db[self.modName][unit .. "FontSize"]) -- how much propotion of space is allowd
     if addon.db[self.modName]["ShowTarget"] then
-        self.bars[unit].targetText:Show()
+        targetText:Show()
     else
-        self.bars[unit].targetText:Hide()
+        targetText:Hide()
     end
 
     -- time text
-    self.bars[unit].timeText:SetFont(
+    local timeText = self.bars[unit].timeText
+    timeText:SetFont(
         addon.LSM:Fetch("font", addon.db[self.modName][unit .. "Font"]) or "Fonts\\FRIZQT__.TTF",
         addon.db[self.modName][unit .. "FontSize"],
         "OUTLINE"
     )
-    self.bars[unit].timeText:SetSize(addon.db[self.modName]["TimeProportion"] * realLength, addon.db[self.modName][unit .. "FontSize"]) -- how much propotion of space is allowd
+    timeText:SetSize(addon.db[self.modName]["TimeProportion"] * realLength, addon.db[self.modName][unit .. "FontSize"]) -- how much propotion of space is allowd
+
+    -- kick sparks
+    local spark = self.bars[unit].kickSpark
+    spark:SetSize(totalWidth, totalHeight)
+    spark:SetPoint("RIGHT", statusBar, "RIGHT")
+    spark.texture:SetColorTexture(sparkColor:GetRGBA())
+    spark.texture:SetSize(sparkWidth, totalHeight)
+    if addon.db[self.modName]["KickSpark"] then
+        spark.texture:SetPoint("CENTER", spark:GetStatusBarTexture(), "RIGHT", 0, 0)
+    else
+        spark.texture:ClearAllPoints()
+    end
 end
 
 -- public methods
@@ -590,6 +607,7 @@ function FocusInterrupt:CreateBar()
     bar.statusBar:SetMinMaxValues(0, 1)
     bar.statusBar:SetValue(0)
     bar.statusBar:SetPoint("RIGHT", bar, "RIGHT")
+    bar.statusBar.spark = bar.statusBar:CreateTexture(nil, "OVERLAY")
 
     -- frame which takes texts
     bar.textFrame = CreateFrame("Frame", nil, bar)
@@ -608,6 +626,11 @@ function FocusInterrupt:CreateBar()
     bar.timeText:SetJustifyH("RIGHT")
     bar.timeText:SetTextColor(1, 1, 1, 1)
     bar.timeText:SetPoint("RIGHT", bar, "RIGHT", 0, 0)
+
+    -- set kick spark
+    bar.kickSpark = CreateFrame("StatusBar", nil, bar)
+    bar.kickSpark:SetStatusBarTexture("Interface\\AddOns\\" .. ADDON_NAME .. "\\Media\\transparent.png")
+    bar.kickSpark.texture = bar.kickSpark:CreateTexture(nil, "OVERLAY")
 
     return bar
 end
