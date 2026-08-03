@@ -404,7 +404,32 @@ local function UpdateInterruptId(self)
     self.interruptID = GetInterruptSpellID(self)
 
     for unit, _ in pairs(self.bars) do
-        LoadInterruptIcon(self, unit)
+        LoadInterruptIcon(self)
+    end
+end
+
+---Handle Kick Spark
+---@param self FocusInterrupt self
+---@param unit string the unit being handled
+---@param isChannel boolean if the cast is a channel cast
+---@param duration LuaDurationObject Blizzard's LuaDurationObject
+local function HandleKickSpark(self, unit, isChannel, duration)
+    local bar = self.bars[unit]
+    -- set the kick spark
+    bar.kickSpark:SetMinMaxValues(0, duration:GetTotalDuration())
+    local cooldown = C_Spell.GetSpellCooldownDuration(self.interruptID, true)
+    bar.kickSpark:SetValue(cooldown:GetRemainingDuration())
+    bar.kickSpark:SetAlphaFromBoolean(cooldown:IsZero(), 0, 255)
+    -- channel cast are left to right, but built-in api does not privide a way to reverse the status bar
+    -- so, only reverse the status fill and re-anchor the spark texture to left instead of right
+    if isChannel then
+        bar.kickSpark:SetReverseFill(true)
+        bar.kickSpark.texture:ClearAllPoints()
+        bar.kickSpark.texture:SetPoint("CENTER", bar.kickSpark:GetStatusBarTexture(), "LEFT", 0, 0)
+    else
+        bar.kickSpark:SetReverseFill(false)
+        bar.kickSpark.texture:ClearAllPoints()
+        bar.kickSpark.texture:SetPoint("CENTER", bar.kickSpark:GetStatusBarTexture(), "RIGHT", 0, 0)
     end
 end
 
@@ -467,11 +492,9 @@ local function Handler(self, unit)
     -- set the max time earlier for performance
     self.bars[unit].statusBar:SetMinMaxValues(0, duration:GetTotalDuration())
 
-    -- set the kick spark
-    self.bars[unit].kickSpark:SetMinMaxValues(0, duration:GetTotalDuration())
-    local cooldown = C_Spell.GetSpellCooldownDuration(self.interruptID, true)
-    self.bars[unit].kickSpark:SetValue(cooldown:GetRemainingDuration())
-    self.bars[unit].kickSpark:SetAlphaFromBoolean(cooldown:IsZero(), 0, 255)
+    -- handle kick spark
+    HandleKickSpark(self, unit, isChannel, duration)
+    
 
     -- still use "OnUpdate", as there are many things we need to keep real-time update
     -- attempted to restrict the refresh rate(update interval), but a smooth function is highly demanded for it -> temperarily gave it up
