@@ -385,12 +385,13 @@ end
 ---@param callback fun(key: string) callback function when value changed
 ---@return AceGUIWidget
 function addon.GUI:CreateSoundSelect(parent, label, get, callback)
-    local soundSelect = AceGUI:Create("LSM30_Sound")
+    local soundSelect = AceGUI:Create("SharedDropdown_Sound")
     soundSelect:SetLabel(label)
-    soundSelect:SetList(addon.LSM:HashTable("sound"))
+    soundSelect:SetList(addon.states.soundList, nil, "DDI-Sound")
     soundSelect:SetValue(get)
     soundSelect:SetCallback("OnValueChanged", function(self, _, key)
         self:SetValue(key)
+        PlaySoundFile(addon.LSM:Fetch("sound", key), "Master")
         if callback then
             callback(key)
         end
@@ -636,5 +637,17 @@ function addon.GUI:CreateFrameStrataDropdown(parent, get, callback)
     end)
 end
 
+-- MARK: Initialize Sound List
+
+function addon.GUI:InitializeSoundList()
+    addon.states.soundList = {}
+    for _, key in ipairs(addon.LSM:List("sound")) do
+        addon.states.soundList[key] = key
+    end
+end
+
 -- Initialize Tag Panels
 addon.GUI.TagPanels = {}
+addon.core:RegisterState("PLAYER_ENTERING_WORLD", nil, "soundList", function()
+    addon.GUI:InitializeSoundList()
+end)

@@ -3,7 +3,7 @@
 ## Notes: Focus Cast Bar Replacement which integrated with Interrupt Ready and Interruptible filter which greatly helps accuracy of interrupts
 ## Author: HBLyx
 ## OptionalDeps: LibSharedMedia-3.0, AceConfig-3.0
-## Version: 3.18.8
+## Version: 3.18.9
 ## SavedVariables: MidnightFocusInterrupt_DB
 ## IconTexture: Interface\AddOns\MidnightFocusInterrupt\Media\HBLyx.png
 ## Category: CastBar
