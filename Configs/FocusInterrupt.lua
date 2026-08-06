@@ -107,15 +107,6 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
     GUI:CreateToggleCheckBox(interruptGroup, L["FocusInterruptibleFilter"], addon.db.FocusInterrupt.NotInterruptibleHide, function(value)
         addon.db.FocusInterrupt.NotInterruptibleHide = value
     end)
-    -- MARK: Core - Interrupted
-    local interruptedGroup = GUI:CreateInlineGroup(interruptGroup, L["InterruptedSettings"])
-    GUI:CreateInformationTag(interruptedGroup, L["InterruptedSettingsDesc"], "LEFT")
-    GUI:CreateSlider(interruptedGroup, L["InterruptedFadeTime"], 0, 2, 0.25, addon.db.FocusInterrupt.InterruptedFadeTime, function(value)
-        addon.db.FocusInterrupt.InterruptedFadeTime = value
-    end)
-    GUI:CreateToggleCheckBox(interruptedGroup, L["ShowInterrupter"], addon.db.FocusInterrupt.ShowInterrupter, function(value)
-        addon.db.FocusInterrupt.ShowInterrupter = value
-    end)
     -- MARK: Core - Color
     local colorGroup = GUI:CreateInlineGroup(interruptGroup, L["ColorSettings"])
     GUI:CreateInformationTag(colorGroup, L["FocusColorPriorityDesc"], "LEFT")
@@ -135,7 +126,16 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
         addon.db.FocusInterrupt.InterruptedColor = value
         update()
     end):SetRelativeWidth(0.25)
-    local kickSparkGroup = GUI:CreateInlineGroup(interruptGroup, L["SparkSettings"])
+    -- MARK: Core - Interrupted
+    local interruptedGroup = GUI:CreateInlineGroup(frame, L["InterruptedSettings"])
+    GUI:CreateInformationTag(interruptedGroup, L["InterruptedSettingsDesc"], "LEFT")
+    GUI:CreateSlider(interruptedGroup, L["InterruptedFadeTime"], 0, 2, 0.25, addon.db.FocusInterrupt.InterruptedFadeTime, function(value)
+        addon.db.FocusInterrupt.InterruptedFadeTime = value
+    end)
+    GUI:CreateToggleCheckBox(interruptedGroup, L["ShowInterrupter"], addon.db.FocusInterrupt.ShowInterrupter, function(value)
+        addon.db.FocusInterrupt.ShowInterrupter = value
+    end)
+    local kickSparkGroup = GUI:CreateInlineGroup(frame, L["SparkSettings"])
     GUI:CreateToggleCheckBox(kickSparkGroup, L["SparkEnabled"], addon.db.FocusInterrupt.Spark, function(value)
         addon.db.FocusInterrupt.Spark = value
         update()
@@ -152,7 +152,7 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
         addon.db.FocusInterrupt.SparkWidth = value
         update()
     end)
-    local textGroup = GUI:CreateInlineGroup(interruptGroup, L["TextSettings"])
+    local textGroup = GUI:CreateInlineGroup(frame, L["TextSettings"])
     GUI:CreateInformationTag(textGroup, L["TextProportionDesc"], "LEFT")
     GUI:CreateToggleCheckBox(textGroup, L["ShowTotalTime"], addon.db.FocusInterrupt.ShowTotalTime, function(value)
         addon.db.FocusInterrupt.ShowTotalTime = value
@@ -175,7 +175,7 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
         update()
     end)
     -- MARK: Core - Kick Icons
-    local interruptIconsGroup = GUI:CreateInlineGroup(interruptGroup, L["InterruptIconsSettings"])
+    local interruptIconsGroup = GUI:CreateInlineGroup(frame, L["InterruptIconsSettings"])
     GUI:CreateInformationTag(interruptIconsGroup, L["InterruptIconDesc"], "LEFT")
     local demoWarlockOnlyCheckBox = GUI:CreateToggleCheckBox(nil, L["ShowDemoWarlockOnly"], addon.db.FocusInterrupt.ShowDemoWarlockOnly, function(value)
         addon.db.FocusInterrupt.ShowDemoWarlockOnly = value
@@ -223,7 +223,7 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
     interruptIconsGroup:AddChild(growDropdown)
 
     -- MARK: Core - Sound
-    local soundGroup = GUI:CreateInlineGroup(interruptGroup, L["SoundSettings"])
+    local soundGroup = GUI:CreateInlineGroup(frame, L["SoundSettings"])
     GUI:CreateInformationTag(soundGroup, L["FocusMuteDesc"], "LEFT")
     local soundSelect = GUI:CreateSoundSelect(nil, L["Sound"], addon.db.FocusInterrupt.SoundMedia, function(value)
         addon.db.FocusInterrupt.SoundMedia = value
