@@ -243,3 +243,4 @@ do
 	end
 	gui:RegisterWidgetType(widgetType, constructor, version)
 end
+
