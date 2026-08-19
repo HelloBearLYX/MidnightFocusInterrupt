@@ -1,0 +1,16 @@
+<Ui xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
+  <Script file="UICore.lua"/>
+  <Script file="ScrollFrame.lua"/>
+  <Script file="TextButton.lua"/>
+  <Script file="ToggleBox.lua"/>
+  <Script file="Slider.lua"/>
+  <Script file="EditBox.lua"/>
+  <Script file="MultiLineEditBox.lua"/>
+  <Script file="ColorPicker.lua"/>
+  <Script file="Dropdown.lua"/>
+  <Script file="MultiDropdown.lua"/>
+  <Script file="MediaDropdown.lua"/>
+  <Script file="TextRegion.lua"/>
+  <Script file="LineSeperator.lua"/>
+  <Script file="Window.lua"/>
+</Ui>

@@ -1,165 +1,310 @@
 local ADDON_NAME, addon = ...
 local L = LibStub("AceLocale-3.0"):GetLocale(ADDON_NAME)
-local AceGUI = LibStub("AceGUI-3.0")
 
 ---@class HB_GUI
----@field frame GUI? GUI to dispaly
----@field isOpened boolean is GUI opened, release the GUI if not opened to save memory
+---@field frame Frame? the movable root frame which holds every part of the configuration UI
+---@field panel Frame? the main panel which holds the title and the content
+---@field content table? the scroll frame which holds the panel of the selected tab
+---@field sidebar table? the window which holds the tab buttons
+---@field selectedTab table? the entry of TABS which is currently shown
+---@field isOpened boolean is the GUI opened
 addon.GUI = {
     frame = nil,
+    content = nil,
+    sidebar = nil,
     isOpened = false,
 }
 
--- MARK: TABS
-local TABS = {
-    {text = L["General"], value = "General"},
-    {text = L["FocusInterruptSettings"], value = "FocusInterrupt"},
-    {text = L["Profile"], value = "Profile"},
+-- MARK: Default values
+local PANEL_WIDTH = 1000
+local PANEL_HEIGHT = 600
+local SIDEBAR_WIDTH = 155
+local PADDING = 16
+local TITLE_HEIGHT = 26
+local TOOLBAR_HEIGHT = 20
+local TOOLBAR_BUTTON_WIDTH = 155
+-- the toolbar window and the close button share this height, so they line up
+local TOOLBAR_FRAME_HEIGHT = TOOLBAR_HEIGHT + 10
+-- the config widgets share one grid: a plain control row, and a labelled one
+local WIDGET_HEIGHT = 38
+local LABELLED_HEIGHT = 38
+local WIDGET_WIDTH = 220
+local CLOSE_BUTTON_SIZE = TOOLBAR_FRAME_HEIGHT
+
+local HEADER_COLOR = "|cFFFFFFFF"
+local SECTION_COLOR = "|cFFFFFFFF"
+
+local CLOSE_BUTTON_TEXTURE = "Interface\\AddOns\\MidnightFocusInterrupt\\GUI\\Assets\\Close_Button.png"
+
+local BACKDROP = {
+    bgFile = "Interface\\Buttons\\WHITE8x8",
+    edgeFile = "Interface\\Buttons\\WHITE8x8",
+    tile = false, tileSize = 1, edgeSize = 1,
+    insets = { left = 1, right = 1, top = 1, bottom = 1 }
 }
+
+local BORDER_BACKDROP = {
+    edgeFile = "Interface\\Buttons\\WHITE8x8",
+    edgeSize = 1,
+}
+
+---Background and border as their own regions, a moved frame keeps them
+local function StyleFrame(frame, alpha)
+    local background = frame:CreateTexture(nil, "BACKGROUND")
+    background:SetAllPoints(frame)
+    background:SetColorTexture(0, 0, 0, alpha or 0.8)
+
+    local border = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+    border:SetAllPoints(frame)
+    border:SetBackdrop(BORDER_BACKDROP)
+    border:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+
+    frame.background = background
+    frame.border = border
+end
 
 -- MARK: General Panel
 
-local function CreateGeneralPanel(container)
-    local panel = addon.GUI:CreateScrollFrame(container)
-    panel:SetFullWidth(true)
-    addon.GUI:CreateInformationTag(panel, L["WelecomeInfo"], "CENTER")
-    -- notification
-    local notificationsGroup = addon.GUI:CreateInlineGroup(panel, L["Notifications"])
-    addon.GUI:CreateInformationTag(notificationsGroup, L["NotificationContent"], "LEFT")
-    -- notification-release
-    local releaseGroup = addon.GUI:CreateInlineGroup(notificationsGroup, L["Downloads/Update"])
-    addon.GUI:CreateInformationTag(releaseGroup, L["Release_Info"], "LEFT")
-    local curseForgeRelease = AceGUI:Create("InteractiveLabel")
-    curseForgeRelease:SetText("|TInterface\\AddOns\\HBLyx_tools\\Media\\CurseForge.png:20:20|t |cFF8080FFCurseForge|r")
-    curseForgeRelease:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
-    curseForgeRelease:SetJustifyV("MIDDLE")
-    curseForgeRelease:SetRelativeWidth(0.25)
-    curseForgeRelease:SetCallback("OnClick", function() addon.Utilities:OpenURL("CurseForge", "https://www.curseforge.com/wow/addons/hblyx-tools") end)
-    curseForgeRelease:SetCallback("OnEnter", function() curseForgeRelease:SetText("|TInterface\\AddOns\\MidnightFocusInterrupt\\Media\\CurseForge.png:20:20|t |cFFFFFFFFCurseForge|r") end)
-    curseForgeRelease:SetCallback("OnLeave", function() curseForgeRelease:SetText("|TInterface\\AddOns\\MidnightFocusInterrupt\\Media\\CurseForge.png:20:20|t |cFF8080FFCurseForge|r") end)
-    releaseGroup:AddChild(curseForgeRelease)
-    local NewBeeBox = AceGUI:Create("InteractiveLabel")
-    NewBeeBox:SetText("|cFF8080FF新手盒子|r")
-    NewBeeBox:SetJustifyV("MIDDLE")
-    NewBeeBox:SetRelativeWidth(0.2)
-    NewBeeBox:SetCallback("OnClick", function() addon.Utilities:OpenURL("新手盒子", "https://www.wclbox.com/games/1/PluginItem/17822?version=2") end)
-    NewBeeBox:SetCallback("OnEnter", function() NewBeeBox:SetText("|cFFFFFFFF新手盒子|r") end)
-    NewBeeBox:SetCallback("OnLeave", function() NewBeeBox:SetText("|cFF8080FF新手盒子|r") end)
-    releaseGroup:AddChild(NewBeeBox)
-    local NetEaseDD = AceGUI:Create("InteractiveLabel")
-    NetEaseDD:SetText("|cFF8080FF网易DD|r")
-    NetEaseDD:SetJustifyV("MIDDLE")
-    NetEaseDD:SetRelativeWidth(0.2)
-    NetEaseDD:SetCallback("OnClick", function() addon.Utilities:OpenURL("网易DD", "https://url.cc.163.com/QULKEz") end)
-    NetEaseDD:SetCallback("OnEnter", function() NetEaseDD:SetText("|cFFFFFFFF网易DD|r") end)
-    NetEaseDD:SetCallback("OnLeave", function() NetEaseDD:SetText("|cFF8080FF网易DD|r") end)
-    releaseGroup:AddChild(NetEaseDD)
-    -- change log
-    local changeLogGroup = addon.GUI:CreateInlineGroup(panel, L["ChangeLog"])
-    addon.GUI:CreateInformationTag(changeLogGroup, L["ChangeLogContent"], "LEFT")
-    -- issues
-    local issueGroup = addon.GUI:CreateInlineGroup(panel, L["Issues"])
-    addon.GUI:CreateInformationTag(issueGroup, L["IssuesContent"], "LEFT")
-    -- contact
-    local contactGroup = addon.GUI:CreateInlineGroup(panel, L["Contact"])
-    local discordInteractive = AceGUI:Create("InteractiveLabel")
-    discordInteractive:SetText("|TInterface\\AddOns\\MidnightFocusInterrupt\\Media\\Discord.png:21:21|t |cFF8080FFDiscord|r")
-    discordInteractive:SetJustifyV("MIDDLE")
-    discordInteractive:SetRelativeWidth(0.25)
-    discordInteractive:SetCallback("OnClick", function() addon.Utilities:OpenURL("Discord", "https://discord.gg/EVFmd6uVYg") end)
-    discordInteractive:SetCallback("OnEnter", function() discordInteractive:SetText("|TInterface\\AddOns\\MidnightFocusInterrupt\\Media\\Discord.png:21:21|t |cFFFFFFFFDiscord|r") end)
-    discordInteractive:SetCallback("OnLeave", function() discordInteractive:SetText("|TInterface\\AddOns\\MidnightFocusInterrupt\\Media\\Discord.png:21:21|t |cFF8080FFDiscord|r") end)
-    contactGroup:AddChild(discordInteractive)
-    local gitHubInteractive = AceGUI:Create("InteractiveLabel")
-    gitHubInteractive:SetText("|TInterface\\AddOns\\HBLyx_tools\\Media\\Github.png:21:21|t |cFF8080FFGitHub|r")
-    gitHubInteractive:SetFont("Fonts\\FRIZQT__.TTF", 13, "OUTLINE")
-    gitHubInteractive:SetJustifyV("MIDDLE")
-    gitHubInteractive:SetRelativeWidth(0.25)
-    gitHubInteractive:SetCallback("OnClick", function() addon.Utilities:OpenURL(L["GitHub"], "https://github.com/HelloBearLYX/HBLyx_Tools/issues") end)
-    gitHubInteractive:SetCallback("OnEnter", function() gitHubInteractive:SetText("|TInterface\\AddOns\\MidnightFocusInterrupt\\Media\\Github.png:21:21|t |cFFFFFFFFGitHub|r") end)
-    gitHubInteractive:SetCallback("OnLeave", function() gitHubInteractive:SetText("|TInterface\\AddOns\\MidnightFocusInterrupt\\Media\\Github.png:21:21|t |cFF8080FFGitHub|r") end)
-    contactGroup:AddChild(gitHubInteractive)
-    local curseForgeInteractive = AceGUI:Create("InteractiveLabel")
-    curseForgeInteractive:SetText("|TInterface\\AddOns\\HBLyx_tools\\Media\\CurseForge.png:21:21|t |cFF8080FFCurseForge|r")
-    curseForgeInteractive:SetFont("Fonts\\FRIZQT__.TTF", 13, "OUTLINE")
-    curseForgeInteractive:SetJustifyV("MIDDLE")
-    curseForgeInteractive:SetRelativeWidth(0.25)
-    curseForgeInteractive:SetCallback("OnClick", function() addon.Utilities:OpenURL(L["CurseForge"], "https://www.curseforge.com/wow/addons/midnightfocusinterrupt/comments") end)
-    curseForgeInteractive:SetCallback("OnEnter", function() curseForgeInteractive:SetText("|TInterface\\AddOns\\MidnightFocusInterrupt\\Media\\CurseForge.png:21:21|t |cFFFFFFFFCurseForge|r") end)
-    curseForgeInteractive:SetCallback("OnLeave", function() curseForgeInteractive:SetText("|TInterface\\AddOns\\MidnightFocusInterrupt\\Media\\CurseForge.png:21:21|t |cFF8080FFCurseForge|r") end)
-    contactGroup:AddChild(curseForgeInteractive)
+local LINKS = {
+    { text = "|TInterface\\AddOns\\MidnightFocusInterrupt\\Media\\CurseForge.png:0|t CurseForge", name = "CurseForge", url = "https://www.curseforge.com/wow/addons/midnightfocusinterrupt" },
+    { text = "新手盒子", name = "新手盒子", url = "https://www.wclbox.com/games/1/PluginItem/17822?version=2" },
+}
 
-    return panel
+local CONTACTS = {
+    { text = "|TInterface\\AddOns\\MidnightFocusInterrupt\\Media\\Discord.png:0|t Discord", name = "Discord", url = "https://discord.gg/EVFmd6uVYg" },
+    { text = "|TInterface\\AddOns\\MidnightFocusInterrupt\\Media\\Github.png:0|t GitHub", name = "GitHub", url = "https://github.com/HelloBearLYX/MidnightFocusInterrupt/issues" },
+    { text = "|TInterface\\AddOns\\MidnightFocusInterrupt\\Media\\CurseForge.png:0|t CurseForge", name = "CurseForge", url = "https://www.curseforge.com/wow/addons/midnightfocusinterrupt/comments" },
+}
+
+---Create a clickable link which opens the copy URL popup
+local function CreateLink(container, info)
+    local link = addon.UICore:Build("TextRegion")
+    link:SetText("|cFF8080FF" .. info.text .. "|r")
+    link:SetRelativeWidth(0.3)
+    link:SetOnClick(function() addon.Utilities:OpenURL(info.name, info.url) end)
+    container:AddWidget(link)
+    return link
+end
+
+local function CreateGeneralPanel(container)
+    addon.GUI:CreateInformationTag(container, L["WelecomeInfo"], "CENTER")
+
+    addon.GUI:CreateInlineGroup(container, L["Downloads/Update"])
+    addon.GUI:CreateInformationTag(container, L["Release_Info"], "LEFT")
+    for _, info in ipairs(LINKS) do
+        CreateLink(container, info)
+    end
+    container:NewRow()
+
+    addon.GUI:CreateInlineGroup(container, L["Notifications"])
+    addon.GUI:CreateInformationTag(container, L["NotificationContent"], "LEFT")
+
+    addon.GUI:CreateInlineGroup(container, L["ChangeLog"])
+    addon.GUI:CreateInformationTag(container, L["ChangeLogContent"], "LEFT")
+    addon.GUI:CreateEditBox(container, "", L["ChangeLogLink"], function() end):SetFullWidth(true)
+
+    addon.GUI:CreateInlineGroup(container, L["Contact"])
+    for _, info in ipairs(CONTACTS) do
+        CreateLink(container, info)
+    end
+    container:NewRow()
+
+    return container
+end
+
+-- MARK: TABS
+local TABS = {
+    {text = L["General"], type = "Button", panelFunction = function(container) return CreateGeneralPanel(container) end},
+    {text = L["FocusInterruptSettings"], type = "Button", tooltip = L["FocusInterruptSettingsDesc"], panelFunction = function(container) return addon.GUI.TagPanels.FocusInterrupt:CreateTabPanel(container) end},
+    {text = L["Profile"], type = "Button", panelFunction = function(container) return addon.GUI.TagPanels.Profile:CreateTabPanel(container) end},
+}
+
+-- MARK: Tabs
+
+---Fill the sidebar with the tab buttons and the section titles
+local function RenderTabs(sidebar)
+    for _, tabInfo in ipairs(TABS) do
+        if tabInfo.type == "Button" then
+            local tabButton = addon.UICore:Build("TextButton")
+            tabButton:SetSize(sidebar:GetWidth(), 22)
+            tabButton:SetText(tabInfo.text)
+            tabButton:SetOnClick(function() addon.GUI:SelectTab(tabInfo) end)
+            if tabInfo.tooltip then
+                addon.UICore:SetTooltip(tabButton, tabInfo.tooltip)
+            end
+            sidebar:AddWidget(tabButton)
+        else
+            local separator = addon.UICore:Build("LineSeperator")
+            separator:SetFullWidth(true)
+            sidebar:AddWidget(separator)
+            sidebar:NewRow()
+
+            local title = addon.UICore:Build("TextRegion")
+            title:SetText(HEADER_COLOR .. tabInfo.text .. "|r")
+            title:SetJustifyH("CENTER")
+            title:SetFullWidth(true)
+            sidebar:AddWidget(title)
+        end
+
+        sidebar:NewRow()
+    end
+end
+
+---Show the panel of a tab in the content scroll frame
+---@param tabInfo table an entry of TABS
+function addon.GUI:SelectTab(tabInfo)
+    if not tabInfo.panelFunction then return end
+
+    self.selectedTab = tabInfo
+    self.content:SetRenderer(function(container)
+        tabInfo.panelFunction(container)
+        container:DoLayout()
+    end)
+    self.content:Rerender()
 end
 
 -- MARK: Initialize GUI
 
+---The root frame carries the drag, every other frame is anchored inside of it
+local function CreateRootFrame()
+    local root = CreateFrame("Frame", "MidnightFocusInterruptConfigFrame", UIParent)
+    root:SetSize(SIDEBAR_WIDTH + PANEL_WIDTH, TOOLBAR_FRAME_HEIGHT + PANEL_HEIGHT)
+    root:SetPoint("CENTER")
+    root:SetFrameStrata("HIGH")
+    root:SetMovable(true)
+    root:EnableMouse(true)
+    root:RegisterForDrag("LeftButton")
+    root:SetScript("OnDragStart", root.StartMoving)
+    root:SetScript("OnDragStop", root.StopMovingOrSizing)
+    root:SetClampedToScreen(true)
+    root:Hide()
+
+    return root
+end
+
+---A mouse enabled child swallows the drag, so it has to move the root itself
+local function AddDragHandle(frame, root)
+    frame:EnableMouse(true)
+    frame:RegisterForDrag("LeftButton")
+    frame:SetScript("OnDragStart", function() root:StartMoving() end)
+    frame:SetScript("OnDragStop", function() root:StopMovingOrSizing() end)
+end
+
+local function CreatePanelFrame(root)
+    local frame = CreateFrame("Frame", nil, root)
+    frame:SetSize(PANEL_WIDTH, PANEL_HEIGHT)
+    frame:SetPoint("BOTTOMRIGHT", root, "BOTTOMRIGHT", 0, 0)
+
+    StyleFrame(frame, 0.8)
+
+    local title = frame:CreateFontString(nil, "OVERLAY")
+    title:SetFont("Fonts\\FRIZQT__.TTF", 18, "OUTLINE")
+    title:SetTextColor(1, 1, 1, 1)
+    title:SetText("|TInterface\\AddOns\\MidnightFocusInterrupt\\Media\\HBLyx.png:0|t " .. string.format(L["GUITitle"], addon:GetVersion()))
+    title:SetJustifyH("CENTER")
+    title:SetPoint("TOPLEFT", frame, "TOPLEFT", PADDING, -PADDING)
+    title:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -PADDING, -PADDING)
+    frame.title = title
+
+    return frame
+end
+
+---Fill the toolbar window with the settings which are not owned by a module
+local function RenderToolbar(toolbar)
+    local testButton = addon.UICore:Build("TextButton")
+    testButton:SetSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_HEIGHT)
+    testButton:SetText(L["Test"])
+    testButton:SetOnClick(function() addon.core:TestMode() end)
+    toolbar:AddWidget(testButton)
+
+    local minimapToggle = addon.UICore:Build("ToggleBox")
+    minimapToggle:SetSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_HEIGHT)
+    minimapToggle:SetText(L["HideMinimapIcon"])
+    minimapToggle:SetValue(addon.db.MinimapIcon.hide)
+    minimapToggle:SetOnClick(function(_, value)
+        addon.db.MinimapIcon.hide = value
+        if value then
+            LibStub("LibDBIcon-1.0"):Hide(ADDON_NAME)
+        else
+            LibStub("LibDBIcon-1.0"):Show(ADDON_NAME)
+        end
+    end)
+    toolbar:AddWidget(minimapToggle)
+end
+
+---Build the main frame, the sidebar and the content area once
+local function BuildGUI(self)
+    local root = CreateRootFrame()
+    self.frame = root
+
+    local frame = CreatePanelFrame(root)
+    self.panel = frame
+
+    -- the toolbar sits above the main frame, like the tab window sits next to it
+    local toolbar = addon.UICore:Build("Window")
+    toolbar:SetParent(root)
+    toolbar:SetSize(PANEL_WIDTH, TOOLBAR_FRAME_HEIGHT)
+    toolbar:SetPoint("TOPRIGHT", root, "TOPRIGHT", 0, 0)
+    toolbar:SetRenderer(RenderToolbar)
+    toolbar:Rerender()
+    toolbar:Show()
+    AddDragHandle(toolbar.frame, root)
+    self.toolbar = toolbar
+
+    local close = CreateFrame("Button", nil, toolbar.frame, "BackdropTemplate")
+    close:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        tile = false, tileSize = 1, edgeSize = 1,
+        insets = { left = 1, right = 1, top = 1, bottom = 1 }
+    })
+    close:SetBackdropColor(0, 0, 0, 0.5)
+    close:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+    close:SetSize(CLOSE_BUTTON_SIZE, CLOSE_BUTTON_SIZE)
+    close:SetPoint("TOPRIGHT", toolbar.frame, "TOPRIGHT", 0, 0)
+    close:SetNormalTexture(CLOSE_BUTTON_TEXTURE)
+    close:SetPushedTexture(CLOSE_BUTTON_TEXTURE)
+    close:SetHighlightTexture(CLOSE_BUTTON_TEXTURE)
+    close:GetHighlightTexture():SetAlpha(0.75)
+    close:SetScript("OnClick", function() addon.GUI:CloseGUI() end)
+    addon.UICore:BuildHover(close)
+    self.closeButton = close
+
+    local content = addon.UICore:Build("ScrollFrame")
+    content:SetParent(frame)
+    content:SetSize(PANEL_WIDTH - PADDING * 2, PANEL_HEIGHT - PADDING * 2 - TITLE_HEIGHT)
+    content:SetPoint("TOPLEFT", frame, "TOPLEFT", PADDING, -(PADDING + TITLE_HEIGHT))
+    content:Show()
+    self.content = content
+
+    local sidebar = addon.UICore:Build("Window")
+    sidebar:SetParent(root)
+    sidebar:SetSize(SIDEBAR_WIDTH, PANEL_HEIGHT + TOOLBAR_FRAME_HEIGHT)
+    sidebar:SetPoint("TOPLEFT", root, "TOPLEFT", 0, 0)
+    sidebar:SetRenderer(RenderTabs)
+    sidebar:Rerender()
+    sidebar:Show()
+    AddDragHandle(sidebar.frame, root)
+    self.sidebar = sidebar
+end
+
 ---Initialize/Constructor for GUI
 function addon.GUI:Render()
-    if self.isOpened or InCombatLockdown() then return end
+    if self.isOpened or addon.states["inCombat"] then
+        if addon.states["inCombat"] then
+            addon.Utilities:print(L["CombatLock"])
+        end
 
-    -- create main frame
+        return
+    end
+
+    if not self.frame then
+        BuildGUI(self)
+    end
+
     self.isOpened = true
-    self.frame = AceGUI:Create("Frame")
-    self.frame:SetTitle("|TInterface\\AddOns\\MidnightFocusInterrupt\\Media\\HBLyx.png:20:20|t " .. L["GUITitle"])
-    self.frame:SetLayout("Flow")
-    self.frame:SetWidth(900)
-    self.frame:SetHeight(600)
-    self.frame:EnableResize(false)
-    self.frame:SetStatusText("|cff8788ee"..  ADDON_NAME .. "|r v" .. addon:GetVersion() .. " " .. L["AnyIssues"])
-    self.frame:SetCallback("OnClose", function(widgets)
-        if widgets then
-            AceGUI:Release(widgets)
-        end
-
-        self.isOpened = false
-        addon.core:TestMode(false) -- turn off test mode when closing GUI
-    end)
-
-    -- MARK: Test button
-    self.TestButton = AceGUI:Create("Button")
-    self.TestButton:SetText(L["Test"])
-    self.TestButton:SetWidth(200)
-    self.TestButton:SetCallback("OnClick", function()
-        addon.core:TestMode() -- toggle test mode on/off when click the button
-    end)
-    self.frame:AddChild(self.TestButton)
-
-    addon.GUI:CreateToggleCheckBox(self.frame, L["HideMinimapIcon"], addon.db.MinimapIcon.hide, function(value)
-        addon.db.MinimapIcon.hide = value
-        if not addon.db.MinimapIcon.hide then
-            LibStub("LibDBIcon-1.0"):Show(ADDON_NAME)
-        else
-            LibStub("LibDBIcon-1.0"):Hide(ADDON_NAME)
-        end
-    end)
-
-    -- create tabs
-    local tabs = AceGUI:Create("TabGroup")
-    tabs:SetLayout("Flow")
-    tabs:SetFullWidth(true)
-    tabs:SetFullHeight(true)
-    tabs:SetTabs(TABS)
-    self.frame:AddChild(tabs)
-    
-    -- MARK: Tab Callback
-    tabs:SetCallback("OnGroupSelected", function(container, _, tab)
-        container:ReleaseChildren()
-
-        -- General Panel
-        if tab == "General" then
-            local panel = CreateGeneralPanel(container)
-            panel:DoLayout()
-        elseif tab == "FocusInterrupt" then
-            local panel = addon.GUI.TagPanels.FocusInterrupt:CreateTabPanel(container)
-            panel:DoLayout()
-        elseif tab == "Profile" then
-            local panel = addon.GUI.TagPanels.Profile:CreateTabPanel(container)
-            panel:DoLayout()
-        end
-    end)
-
-    tabs:SelectTab("General")
+    self.frame:Show()
+    self:SelectTab(self.selectedTab or TABS[1])
 end
 
 -- MARK: Open/Close GUI
@@ -171,425 +316,333 @@ end
 
 ---Close GUI
 function addon.GUI:CloseGUI()
-    if self.isOpened and self.frame then
-        self.frame:Hide()
-        self.isOpened = false
-    end
+    if not self.frame then return end
+
+    self.isOpened = false
+    self.frame:Hide()
+    addon.core:TestMode(false) -- turn off test mode when closing GUI
 end
 
--- MARK: Inline Group
+-- MARK: Widget factories
+-- every factory adds the widget to the container when one is given, and returns the widget,
+-- so the config panels can keep a reference and disable, resize or re-fill it later
 
----Create an inline group to its parent
----@param parent AceGUIWidget the parent container
+local function Attach(container, widget)
+    if container then
+        container:AddWidget(widget)
+    end
+    return widget
+end
+
+---The config panels are laid out by the container itself, so a group is only a title
+---@param parent table the container
 ---@param title string title
----@return AceGUIWidget
+---@return table container the very same container
 function addon.GUI:CreateInlineGroup(parent, title)
-    local inlineGroup = AceGUI:Create("InlineGroup")
-    inlineGroup:SetTitle("|cFFFFFFFF" .. title .. "|r")
-    inlineGroup:SetFullWidth(true)
-    inlineGroup:SetLayout("Flow")
-
-    if parent then
-        parent:AddChild(inlineGroup)
+    if parent and title and title ~= "" then
+        parent:NewRow()
+        self:CreateHeader(parent, title)
     end
 
-    return inlineGroup
+    return parent
 end
 
--- MARK: Dropdown Group
+---@param parent table the container
+---@return table? widget
+function addon.GUI:CreateSeperator(parent)
+    if not parent then return end
 
----Create a dropdown group to its parent
----@param parent AceGUIWidget the parent container
----@param title string title
----@param list table the list of items for the dropdown
----@param order table the order of items in the dropdown
----@param get any initial value for the dropdown
----@param callback fun(key) callback function when an item is selected
----@return AceGUIWidget
-function addon.GUI:CreateDropdownGroup(parent, title, list, order, get, callback)
-    local dropdownGroup = AceGUI:Create("DropdownGroup")
-    dropdownGroup:SetTitle("|cFFFFFFFF" .. title .. "|r")
-    dropdownGroup:SetFullWidth(true)
-    dropdownGroup:SetLayout("Flow")
-    dropdownGroup:SetGroupList(list, order)
-    dropdownGroup:SetGroup(get)
-    dropdownGroup:SetCallback("OnGroupSelected", function(_, _, group)
-        if callback then
-            callback(group)
-        end
-    end)
+    local line = addon.UICore:Build("LineSeperator")
+    line:SetFullWidth(true)
 
-    if parent then
-        parent:AddChild(dropdownGroup)
-    end
-    
-    return dropdownGroup
+    parent:AddWidget(line)
+    parent:NewRow()
+
+    return line
 end
 
--- MARK: Scroll Frame
-
----Create a scroll frame to its parent
----@param parent AceGUIWidget the parent container
----@return AceGUIWidget
+---@param parent table the container
+---@return table container the container itself, the panels are already scrollable
 function addon.GUI:CreateScrollFrame(parent)
-    local scrollFrame = AceGUI:Create("ScrollFrame")
-    scrollFrame:SetLayout("Flow")
-    scrollFrame:SetFullWidth(true)
-    scrollFrame:SetFullHeight(true)
-    
-    if parent then
-        parent:AddChild(scrollFrame)
-    end
-
-    return scrollFrame
+    return parent
 end
 
--- MARK: Toggle CheckBox
+---@param parent table the container
+---@param title string title
+---@return table widget
+function addon.GUI:CreateHeader(parent, title)
+    -- a header always opens a new section, so it carries the separator
+    self:CreateSeperator(parent)
 
----Create a Toggle Check Box
----@param parent AceGUIWidget the parent container
+    local header = addon.UICore:Build("TextRegion")
+    header:SetFontSize(14)
+    header:SetText(SECTION_COLOR .. (title or "") .. "|r")
+    header:SetFullWidth(true)
+
+    Attach(parent, header)
+    if parent then parent:NewRow() end
+
+    return header
+end
+
+---@param parent table the container
+---@param description string the description to display
+---@param textJustification string? "LEFT", "CENTER" or "RIGHT"
+---@return table widget
+function addon.GUI:CreateInformationTag(parent, description, textJustification)
+    local text = addon.UICore:Build("TextRegion")
+    text:SetText(description or "")
+    text:SetJustifyH(textJustification or "CENTER")
+    text:SetFullWidth(true)
+
+    Attach(parent, text)
+    if parent then parent:NewRow() end
+
+    return text
+end
+
+---@param parent table the container
 ---@param label string label
 ---@param get boolean the value to set
----@param callback fun(newValue: boolean) callback function when value changed
----@return AceGUIWidget
+---@param callback fun(newValue: boolean) called when the value changed
+---@return table widget
 function addon.GUI:CreateToggleCheckBox(parent, label, get, callback)
-    local toggle = AceGUI:Create("CheckBox")
-    toggle:SetLabel(label)
+    local toggle = addon.UICore:Build("ToggleBox")
+    toggle:SetSize(WIDGET_WIDTH, WIDGET_HEIGHT)
+    toggle:SetText(label or "")
     toggle:SetValue(get)
-    toggle:SetCallback("OnValueChanged", function(_, _, newValue)
-        if callback then
-            callback(newValue)
-        end
+    toggle:SetOnClick(function(_, value)
+        if callback then callback(value) end
     end)
-    if parent then
-        parent:AddChild(toggle)
-    end
-    return toggle
+
+    return Attach(parent, toggle)
 end
 
--- MARK: Button
-
----Create a button
----@param parent AceGUIWidget the parent container
+---@param parent table the container
 ---@param label string label
----@param callback fun() callback function when button clicked
----@return AceGUIWidget
+---@param callback fun() called when the button is clicked
+---@return table widget
 function addon.GUI:CreateButton(parent, label, callback)
-    local button = AceGUI:Create("Button")
-    button:SetText(label)
-    button:SetCallback("OnClick", function()
-        if callback then
-            callback()
-        end
+    local button = addon.UICore:Build("TextButton")
+    button:SetSize(WIDGET_WIDTH, WIDGET_HEIGHT)
+    button:SetText(label or "")
+    button:SetOnClick(function()
+        if callback then callback() end
     end)
-    if parent then
-        parent:AddChild(button)
-    end
-    return button
+
+    return Attach(parent, button)
 end
 
--- MARK: Slider
-
----Create a slider
----@param parent AceGUIWidget the parent container
+---@param parent table the container
 ---@param label string label
 ---@param min number minimum of the slider
 ---@param max number maximum of the slider
 ---@param step number step size of the slider
 ---@param get number the value to set
----@param callback fun(newValue) callback function when value change
----@return AceGUIWidget
+---@param callback fun(newValue: number) called when the value changed
+---@return table widget
 function addon.GUI:CreateSlider(parent, label, min, max, step, get, callback)
-    local slider = AceGUI:Create("Slider")
-    slider:SetLabel(label)
-    slider:SetSliderValues(min, max, step)
+    local slider = addon.UICore:Build("Slider")
+    slider:SetSize(WIDGET_WIDTH, LABELLED_HEIGHT + 2)
+    slider:SetLabel(label or "")
+    slider:SetMinMaxValues(min, max, step)
     slider:SetValue(get)
-    slider:SetCallback("OnValueChanged", function(_, _, newValue)
-        if callback then
-            callback(newValue)
-        end
+    slider:SetOnValueChanged(function(_, value)
+        if callback then callback(value) end
     end)
-    if parent then
-        parent:AddChild(slider)
-    end
-    return slider
+
+    return Attach(parent, slider)
 end
 
--- MARK: Create Header
-
----Create a header
----@param parent AceGUIWidget the parent container
----@param title string title
----@return AceGUIWidget
-function addon.GUI:CreateHeader(parent, title)
-    local headingText = AceGUI:Create("Heading")
-    headingText:SetText("|cFFFFCC00" .. title .. "|r")
-    headingText:SetFullWidth(true)
-    if parent then
-        parent:AddChild(headingText)
-    end
-    return headingText
-end
-
--- MARK: Information Tag
-
----Create an information tag/lines
----@param parent AceGUIWidget the parent container
----@param description string the description to display
----@param textJustification string the text justification ("LEFT", "CENTER", "RIGHT")
----@return AceGUIWidget
-function addon.GUI:CreateInformationTag(parent, description, textJustification)
-    local informationLabel = AceGUI:Create("Label")
-    informationLabel:SetText(description)
-    informationLabel:SetFullWidth(true)
-    informationLabel:SetJustifyH(textJustification or "CENTER")
-    informationLabel:SetHeight(24)
-    informationLabel:SetJustifyV("MIDDLE")
-    if parent then
-        parent:AddChild(informationLabel)
-    end
-    return informationLabel
-end
-
--- MARK: Create Font
-
----Create a font select dropdown
----@param parent AceGUIWidget the parent container
+---@param parent table the container
 ---@param label string label
 ---@param get string the value to set
----@param callback fun(key: string) callback function when value changed
----@return AceGUIWidget
-function addon.GUI:CreateFontSelect(parent, label, get, callback)
-    local fontSelect = AceGUI:Create("LSM30_Font")
-    fontSelect:SetLabel(label)
-    fontSelect:SetList(addon.LSM:HashTable("font"))
-    fontSelect:SetValue(get)
-    fontSelect:SetCallback("OnValueChanged", function(self, _, key)
-        self:SetValue(key)
-        if callback then
-            callback(key)
-        end
-    end)
-    if parent then
-        parent:AddChild(fontSelect)
-    end
-    return fontSelect
-end
-
--- MARK: Create Sound
-
----Create a sound select dropdown
----@param parent AceGUIWidget the parent container
----@param label string label
----@param get string the value to set
----@param callback fun(key: string) callback function when value changed
----@return AceGUIWidget
-function addon.GUI:CreateSoundSelect(parent, label, get, callback)
-    local soundSelect = AceGUI:Create("SharedDropdown_Sound")
-    soundSelect:SetLabel(label)
-    soundSelect:SetList(addon.states.soundList, nil, "DDI-Sound")
-    soundSelect:SetValue(get)
-    soundSelect:SetCallback("OnValueChanged", function(self, _, key)
-        self:SetValue(key)
-        PlaySoundFile(addon.LSM:Fetch("sound", key), "Master")
-        if callback then
-            callback(key)
-        end
-    end)
-    if parent then
-        parent:AddChild(soundSelect)
-    end
-    return soundSelect
-end
-
--- MARK: Create Texture
-
----Create a texture select dropdown
----@param parent AceGUIWidget the parent container
----@param label string label
----@param get string the value to set
----@param callback fun(key: string) callback function when value changed
----@return AceGUIWidget
-function addon.GUI:CreateTextureSelect(parent, label, get, callback)
-    local textureSelect = AceGUI:Create("LSM30_Statusbar")
-    textureSelect:SetLabel(label)
-    textureSelect:SetList(addon.LSM:HashTable("statusbar"))
-    textureSelect:SetValue(get)
-    textureSelect:SetCallback("OnValueChanged", function(self, _, key)
-        self:SetValue(key)
-        if callback then
-            callback(key)
-        end
-    end)
-    if parent then
-        parent:AddChild(textureSelect)
-    end
-    return textureSelect
-end
-
--- MARK: Create Color Picker
-
----Create a color picker
----@param parent AceGUIWidget the parent container
----@param label string label
----@param hasAlpha boolean whether the color picker has alpha channel
----@param get string the value to set (hex color)
----@param callback fun(hexColor: string) callback function when value changed, the color will be converted to hex format before passing to the callback
----@return AceGUIWidget
-function addon.GUI:CreateColorPicker(parent, label, hasAlpha, get, callback)
-    local colorPicker = AceGUI:Create("ColorPicker")
-    colorPicker:SetLabel(label)
-    colorPicker:SetHasAlpha(hasAlpha)
-    colorPicker:SetColor(addon.Utilities:HexToRGB(get))
-    colorPicker:SetCallback("OnValueChanged", function(_, _, r, g, b, a)
-        if callback then
-            callback(addon.Utilities:RGBToHex(r, g, b, a))
-        end
-    end)
-    if parent then
-        parent:AddChild(colorPicker)
-    end
-    return colorPicker
-end
-
--- MARK: Create EditBox
-
----Create an edit box
----@param parent AceGUIWidget the parent container
----@param label string label
----@param get string the value to set
----@param callback fun(newValue: string) callback function when value changed
----@return AceGUIWidget
+---@param callback fun(newValue: string) called when the text is committed
+---@return table widget
 function addon.GUI:CreateEditBox(parent, label, get, callback)
-    local editBox = AceGUI:Create("EditBox")
-    editBox:SetLabel(label)
-    editBox:SetText(get)
-    editBox:SetCallback("OnEnterPressed", function(self)
-        if callback then
-            callback(self:GetText())
-        end
-    end)
-    if parent then
-        parent:AddChild(editBox)
-    end
-    return editBox
-end
-
--- MARK: Create Dropdown
-
----Create a generic dropdown
----@param parent AceGUIWidget the parent container
----@param label string label
----@param list table the list of items to display in the dropdown
----@param order table? optional display order for list items
----@param get string the value to set
----@param callback fun(key: string, checked: boolean) callback function when value changed
----@return AceGUIWidget
-function addon.GUI:CreateDropdown(parent, label, list, order, get, callback)
-    local dropdown = AceGUI:Create("Dropdown")
-    dropdown:SetLabel(label)
-    dropdown:SetMultiselect(false)
-    if list then
-        if order then
-            dropdown:SetList(list, order)
-        else
-            dropdown:SetList(list)
-        end
-    end
-    dropdown:SetValue(get)
-    dropdown:SetCallback("OnValueChanged", function(_, _, key, checked)
-        if callback then
-            callback(key, checked)
-        end
+    local editBox = addon.UICore:Build("EditBox")
+    editBox:SetSize(WIDGET_WIDTH, LABELLED_HEIGHT)
+    editBox:SetLabel(label or "")
+    editBox:SetText(get or "")
+    editBox:SetOnEnterPressed(function(_, text)
+        if callback then callback(text) end
     end)
 
-    if parent then
-        parent:AddChild(dropdown)
-    end
-    return dropdown
+    return Attach(parent, editBox)
 end
 
--- MARK: MultiLine EditBox
-
----Create a multi-line edit box
----@param parent AceGUIWidget the parent container
+---@param parent table the container
 ---@param label string label
 ---@param get string the value to set
----@param callback fun(newValue: string) callback function when value changed
----@return AceGUIWidget
+---@param callback fun(newValue: string) called when the text is committed
+---@return table widget
 function addon.GUI:CreateMultiLineEditBox(parent, label, get, callback)
-    local editBox = AceGUI:Create("MultiLineEditBox")
-    editBox:SetLabel(label)
-    editBox:SetText(get)
-    editBox:SetRelativeWidth(1)
-    editBox:SetCallback("OnEnterPressed", function(self)
-        if callback then
-            callback(self:GetText())
-        end
+    local editBox = addon.UICore:Build("MultiLineEditBox")
+    editBox:SetSize(400, 140)
+    editBox:SetLabel(label or "")
+    editBox:SetText(get or "")
+    editBox:SetFullWidth(true)
+    editBox:SetOnEnterPressed(function(_, text)
+        if callback then callback(text) end
     end)
 
-    if parent then
-        parent:AddChild(editBox)
-    end
+    Attach(parent, editBox)
+    if parent then parent:NewRow() end
+
     return editBox
+end
+
+---@param parent table the container
+---@param label string label
+---@param list table the value to display map
+---@param order table? optional display order
+---@param get any the value to set
+---@param callback fun(key: any) called when the value changed
+---@return table widget
+function addon.GUI:CreateDropdown(parent, label, list, order, get, callback)
+    local dropdown = addon.UICore:Build("Dropdown")
+    dropdown:SetSize(WIDGET_WIDTH, LABELLED_HEIGHT)
+    dropdown:SetLabel(label or "")
+    dropdown:SetList(list or {}, order)
+    dropdown:SetValue(get)
+    dropdown:SetOnValueChanged(function(_, key)
+        if callback then callback(key) end
+    end)
+
+    return Attach(parent, dropdown)
+end
+
+---@param parent table the container
+---@param label string label
+---@param hasAlpha boolean whether the alpha channel can be edited
+---@param get string the hex color to set
+---@param callback fun(hexColor: string) called with the new hex color
+---@return table widget
+function addon.GUI:CreateColorPicker(parent, label, hasAlpha, get, callback)
+    local colorPicker = addon.UICore:Build("ColorPicker")
+    colorPicker:SetSize(WIDGET_WIDTH, LABELLED_HEIGHT)
+    colorPicker:SetLabel(label or "")
+    colorPicker:SetHasAlpha(hasAlpha)
+    colorPicker:SetHexColor(get)
+    colorPicker:SetOnColorChanged(function(widget)
+        if callback then callback(widget:GetHexColor()) end
+    end)
+
+    return Attach(parent, colorPicker)
+end
+
+---@param parent table the container
+---@param label string label
+---@param get string the value to set
+---@param callback fun(key: string) called when the value changed
+---@return table widget
+function addon.GUI:CreateFontSelect(parent, label, get, callback)
+    local fontSelect = addon.UICore:Build("FontDropdown")
+    fontSelect:SetSize(WIDGET_WIDTH, LABELLED_HEIGHT)
+    fontSelect:SetLabel(label or "")
+    fontSelect:SetValue(get)
+    fontSelect:SetOnValueChanged(function(_, key)
+        if callback then callback(key) end
+    end)
+
+    return Attach(parent, fontSelect)
+end
+
+---@param parent table the container
+---@param label string label
+---@param get string the value to set
+---@param callback fun(key: string) called when the value changed
+---@return table widget
+function addon.GUI:CreateTextureSelect(parent, label, get, callback)
+    local textureSelect = addon.UICore:Build("TextureDropdown")
+    textureSelect:SetSize(WIDGET_WIDTH, LABELLED_HEIGHT)
+    textureSelect:SetLabel(label or "")
+    textureSelect:SetValue(get)
+    textureSelect:SetOnValueChanged(function(_, key)
+        if callback then callback(key) end
+    end)
+
+    return Attach(parent, textureSelect)
+end
+
+---@param parent table the container
+---@param label string label
+---@param get string the value to set
+---@param callback fun(key: string) called when the value changed
+---@return table widget
+function addon.GUI:CreateSoundSelect(parent, label, get, callback)
+    local soundSelect = addon.UICore:Build("SoundDropdown")
+    soundSelect:SetSize(WIDGET_WIDTH, LABELLED_HEIGHT)
+    soundSelect:SetLabel(label or "")
+    soundSelect:SetValue(get)
+    soundSelect:SetOnValueChanged(function(_, key)
+        if callback then callback(key) end
+    end)
+
+    return Attach(parent, soundSelect)
+end
+
+---@param parent table the container
+---@param get string the value to set
+---@param callback fun(strata: string) called with the frame strata
+---@return table widget
+function addon.GUI:CreateFrameStrataDropdown(parent, get, callback)
+    local order = {"BACKGROUND", "LOW", "MEDIUM", "HIGH", "DIALOG", "FULLSCREEN", "FULLSCREEN_DIALOG"}
+    return addon.GUI:CreateDropdown(parent, L["FrameStrata"], addon.Utilities.FrameStrata, order, get, function(key)
+        if callback then
+            callback(addon.Utilities.FrameStrata[key])
+        end
+    end)
 end
 
 -- MARK: Multi Dropdown
 
----Create a multi-select dropdown
----@param parent AceGUIWidget the parent container
+---Create a multi select dropdown
+---@param parent table the container
 ---@param label string label
----@param list table the list of items to display in the dropdown
----@param order table? optional display order for list items
----@param get table the values to set
+---@param list table the value to display map
+---@param order table? optional display order
+---@param get table? the keys to select
+---@return table component with GetSelectedKeys, ClearSelections, SetSelectedKeys and GetWidget
 function addon.GUI:CreateMultiDropdown(parent, label, list, order, get)
-    local self = {} -- re-defined self for this component
+    local component = {}
 
-    self.selectedKeys = {}
+    local dropdown = addon.UICore:Build("MultiDropdown")
+    dropdown:SetSize(WIDGET_WIDTH, LABELLED_HEIGHT)
+    dropdown:SetLabel(label or "")
+    dropdown:SetList(list or {}, order)
+    dropdown:SetValue(get)
+    Attach(parent, dropdown)
 
-    self.widget = addon.GUI:CreateDropdown(parent, label, list, order, get, function(key, checked)
-        if checked then
-            self.selectedKeys[key] = true
-        else
-            self.selectedKeys[key] = nil
-        end
-    end)
-    self.widget:SetMultiselect(true)
-    
-    function self:GetSelectedKeys()
-        return next(self.selectedKeys) and self.selectedKeys or nil
+    component.widget = dropdown
+
+    function component:GetSelectedKeys()
+        return self.widget:GetSelectedKeys()
     end
 
-    function self:ClearSelections()
-        for key, _ in pairs(self.selectedKeys) do
-            self.selectedKeys[key] = nil
-            self.widget:SetItemValue(key, false)
-        end
+    function component:ClearSelections()
+        self.widget:ClearSelections()
     end
 
-    function self:SetSelectedKeys(keys)
-        self:ClearSelections()
-        for key, _ in pairs(keys or {}) do
-            self.selectedKeys[key] = true
-            self.widget:SetItemValue(key, true)
-        end
+    function component:SetSelectedKeys(keys)
+        self.widget:SetSelectedKeys(keys or {})
     end
 
-    function self:GetWidget()
+    function component:GetWidget()
         return self.widget
     end
 
-    return self
+    return component
 end
 
 -- MARK: Specs Dropdown
 
 ---Create a specialization select dropdown
----@param parent AceGUIWidget the parent container
+---@param parent table the container
 ---@param label string label
----@return table component GUI component with GetSelectedSpecs, ClearSpecSelection and SetSelectedSpecs methods
+---@return table component with GetSelectedSpecs, ClearSpecSelection, SetSelectedSpecs and GetWidget
 function addon.GUI:CreateSpecSelectDropdown(parent, label)
-    local self = {} -- re-defined self for this component
+    local component = {}
     local specClassList = addon.Utilities:GetAllSpecIconList(true)
     local specsList, specsOrder = {}, {}
     for _, specs in pairs(specClassList) do
@@ -599,55 +652,26 @@ function addon.GUI:CreateSpecSelectDropdown(parent, label)
         end
     end
 
-    self.dropdown = addon.GUI:CreateMultiDropdown(parent, label, specsList, specsOrder, nil)
+    component.dropdown = addon.GUI:CreateMultiDropdown(parent, label, specsList, specsOrder, nil)
 
-    function self:GetSelectedSpecs()
+    function component:GetSelectedSpecs()
         return self.dropdown:GetSelectedKeys()
     end
 
-    function self:ClearSpecSelection()
+    function component:ClearSpecSelection()
         self.dropdown:ClearSelections()
     end
 
-    function self:SetSelectedSpecs(loadingSpecs)
+    function component:SetSelectedSpecs(loadingSpecs)
         self.dropdown:SetSelectedKeys(loadingSpecs)
     end
 
-    function self:GetWidget()
+    function component:GetWidget()
         return self.dropdown:GetWidget()
     end
 
-    return self
-end
-
--- MARK: Create Frame Strata
-
----Create a frame strata select dropdown
----@param parent AceGUIWidget the parent container
----@param get string the value to set
----@param callback fun(key: string) callback function when value changed
----@return AceGUIWidget
-function addon.GUI:CreateFrameStrataDropdown(parent, get, callback)
-    local frameStrataList = addon.Utilities.FrameStrata
-    local order = {"BACKGROUND", "LOW", "MEDIUM", "HIGH", "DIALOG", "FULLSCREEN", "FULLSCREEN_DIALOG"}
-    return addon.GUI:CreateDropdown(parent, L["FrameStrata"], frameStrataList, order, get, function(key)
-        if callback then
-            callback(addon.Utilities.FrameStrata[key])
-        end
-    end)
-end
-
--- MARK: Initialize Sound List
-
-function addon.GUI:InitializeSoundList()
-    addon.states.soundList = {}
-    for _, key in ipairs(addon.LSM:List("sound")) do
-        addon.states.soundList[key] = key
-    end
+    return component
 end
 
 -- Initialize Tag Panels
 addon.GUI.TagPanels = {}
-addon.core:RegisterState("PLAYER_ENTERING_WORLD", nil, "soundList", function()
-    addon.GUI:InitializeSoundList()
-end)

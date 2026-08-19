@@ -72,8 +72,7 @@ end
 GUI.TagPanels.FocusInterrupt = {}
 function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
     -- MARK: General
-    local frame = GUI:CreateScrollFrame(parent)
-    frame:SetLayout("Flow")
+    local frame = parent
     GUI:CreateToggleCheckBox(frame, L["Enable"] .. "|cff0070DD" .. L["FocusInterruptSettings"] .. "|r", addon.db.FocusInterrupt.Enabled, function(value)
         addon.db.FocusInterrupt.Enabled = value
         if addon.core:HasModuleLoaded(MOD_KEY) then -- if module is loaded
@@ -144,6 +143,7 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
         addon.db.FocusInterrupt.KickSpark = value
         update()
     end)
+    GUI:CreateInformationTag(kickSparkGroup, "\n", "LEFT")
     GUI:CreateColorPicker(kickSparkGroup, L["SparkColor"], true, addon.db.FocusInterrupt.SparkColor, function(value)
         addon.db.FocusInterrupt.SparkColor = value
         update()
@@ -215,12 +215,12 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
     iconXSlider:SetDisabled(not addon.db.FocusInterrupt.ShowKickIcons)
     iconYSlider:SetDisabled(not addon.db.FocusInterrupt.ShowKickIcons)
     growDropdown:SetDisabled(not addon.db.FocusInterrupt.ShowKickIcons)
-    interruptIconsGroup:AddChild(demoWarlockOnlyCheckBox)
+    frame:AddWidget(demoWarlockOnlyCheckBox)
     GUI:CreateInformationTag(interruptIconsGroup, "\n")
-    interruptIconsGroup:AddChild(iconSizeSlider)
-    interruptIconsGroup:AddChild(iconXSlider)
-    interruptIconsGroup:AddChild(iconYSlider)
-    interruptIconsGroup:AddChild(growDropdown)
+    frame:AddWidget(iconSizeSlider)
+    frame:AddWidget(iconXSlider)
+    frame:AddWidget(iconYSlider)
+    frame:AddWidget(growDropdown)
 
     -- MARK: Core - Sound
     local soundGroup = GUI:CreateInlineGroup(frame, L["SoundSettings"])
@@ -238,8 +238,8 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
     end)
     soundSelect:SetDisabled(addon.db.FocusInterrupt.Mute)
     soundChannelDropdown:SetDisabled(addon.db.FocusInterrupt.Mute)
-    soundGroup:AddChild(soundSelect)
-    soundGroup:AddChild(soundChannelDropdown)
+    frame:AddWidget(soundSelect)
+    frame:AddWidget(soundChannelDropdown)
 
     -- style
     local styleGroup = GUI:CreateInlineGroup(frame, L["StyleSettings"])
@@ -301,11 +301,21 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
     -- MARK: Target Bar Settings
     local targetStyleGroup = GUI:CreateInlineGroup(styleGroup, L["TargetBarSettings"])
     GUI:CreateInformationTag(targetStyleGroup, L["TargetBarSettingsDesc"], "LEFT")
-    local targetHideFriendlyToggle = GUI:CreateToggleCheckBox(nil, L["HideIfFriendly"], addon.db.FocusInterrupt.targetHideFriendly, function(value)
+
+    -- assigned once every widget of the section exists, the toggle only calls it
+    local SetTargetBarDisabled
+
+    GUI:CreateToggleCheckBox(targetStyleGroup, L["Enable"], addon.db.FocusInterrupt.EnabledTargetBar, function(value)
+        addon.db.FocusInterrupt.EnabledTargetBar = value
+        SetTargetBarDisabled(not value)
+        addon:ShowDialog(ADDON_NAME.."RLNeeded")
+    end)
+
+    local targetHideFriendlyToggle = GUI:CreateToggleCheckBox(frame, L["HideIfFriendly"], addon.db.FocusInterrupt.targetHideFriendly, function(value)
         addon.db.FocusInterrupt.targetHideFriendly = value
     end)
     -- MARK: Target Style - Texture
-    local targetTexttureGroup = GUI:CreateInlineGroup(nil, L["TextureSettings"])
+    local targetTexttureGroup = GUI:CreateInlineGroup(frame, L["TextureSettings"])
     local targetTextureSelect = GUI:CreateTextureSelect(targetTexttureGroup, L["Texture"], addon.db.FocusInterrupt.targetTexture, function(value)
         addon.db.FocusInterrupt.targetTexture = value
         update()
@@ -315,7 +325,7 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
         update()
     end)
     -- MARK: Target Style - Position
-    local targetPositionGroup = GUI:CreateInlineGroup(nil, L["PositionSettings"])
+    local targetPositionGroup = GUI:CreateInlineGroup(frame, L["PositionSettings"])
     local targetXSlider = GUI:CreateSlider(targetPositionGroup, L["X"], -2000, 2000, 1, addon.db.FocusInterrupt.targetX, function(value)
         addon.db.FocusInterrupt.targetX = value
         update()
@@ -325,7 +335,7 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
         update()
     end)
     -- MARK: Target Style - Size
-    local targetSizeGroup = GUI:CreateInlineGroup(nil, L["SizeSettings"])
+    local targetSizeGroup = GUI:CreateInlineGroup(frame, L["SizeSettings"])
     local targetWidthSlider = GUI:CreateSlider(targetSizeGroup, L["Width"], 50, 1000, 1, addon.db.FocusInterrupt.targetWidth, function(value)
         addon.db.FocusInterrupt.targetWidth = value
         update()
@@ -339,7 +349,7 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
         update()
     end)
     -- MARK: Target Style - Font
-    local targetFontGroup = GUI:CreateInlineGroup(nil, L["FontSettings"])
+    local targetFontGroup = GUI:CreateInlineGroup(frame, L["FontSettings"])
     local targetFontSelect = GUI:CreateFontSelect(targetFontGroup, L["Font"], addon.db.FocusInterrupt.targetFont, function(value)
         addon.db.FocusInterrupt.targetFont = value
         update()
@@ -349,35 +359,20 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
         update()
     end)
     
-    GUI:CreateToggleCheckBox(targetStyleGroup, L["Enable"], addon.db.FocusInterrupt.EnabledTargetBar, function(value)
-        addon.db.FocusInterrupt.EnabledTargetBar = value
-        targetHideFriendlyToggle:SetDisabled(not value)
-        targetTextureSelect:SetDisabled(not value)
-        targetBackgroundAlphaSlider:SetDisabled(not value)
-        targetXSlider:SetDisabled(not value)
-        targetYSlider:SetDisabled(not value)
-        targetWidthSlider:SetDisabled(not value)
-        targetHeightSlider:SetDisabled(not value)
-        targetIconZoomSlider:SetDisabled(not value)
-        targetFontSelect:SetDisabled(not value)
-        targetFontSizeSlider:SetDisabled(not value)
-        addon:ShowDialog(ADDON_NAME.."RLNeeded")
-    end)
-    targetHideFriendlyToggle:SetDisabled(not addon.db.FocusInterrupt.EnabledTargetBar)
-    targetTextureSelect:SetDisabled(not addon.db.FocusInterrupt.EnabledTargetBar)
-    targetBackgroundAlphaSlider:SetDisabled(not addon.db.FocusInterrupt.EnabledTargetBar)
-    targetXSlider:SetDisabled(not addon.db.FocusInterrupt.EnabledTargetBar)
-    targetYSlider:SetDisabled(not addon.db.FocusInterrupt.EnabledTargetBar)
-    targetWidthSlider:SetDisabled(not addon.db.FocusInterrupt.EnabledTargetBar)
-    targetHeightSlider:SetDisabled(not addon.db.FocusInterrupt.EnabledTargetBar)
-    targetIconZoomSlider:SetDisabled(not addon.db.FocusInterrupt.EnabledTargetBar)
-    targetFontSelect:SetDisabled(not addon.db.FocusInterrupt.EnabledTargetBar)
-    targetFontSizeSlider:SetDisabled(not addon.db.FocusInterrupt.EnabledTargetBar)
-    targetStyleGroup:AddChild(targetHideFriendlyToggle)
-    targetStyleGroup:AddChild(targetTexttureGroup)
-    targetStyleGroup:AddChild(targetPositionGroup)
-    targetStyleGroup:AddChild(targetSizeGroup)
-    targetStyleGroup:AddChild(targetFontGroup)
+    SetTargetBarDisabled = function(disabled)
+        targetHideFriendlyToggle:SetDisabled(disabled)
+        targetTextureSelect:SetDisabled(disabled)
+        targetBackgroundAlphaSlider:SetDisabled(disabled)
+        targetXSlider:SetDisabled(disabled)
+        targetYSlider:SetDisabled(disabled)
+        targetWidthSlider:SetDisabled(disabled)
+        targetHeightSlider:SetDisabled(disabled)
+        targetIconZoomSlider:SetDisabled(disabled)
+        targetFontSelect:SetDisabled(disabled)
+        targetFontSizeSlider:SetDisabled(disabled)
+    end
+
+    SetTargetBarDisabled(not addon.db.FocusInterrupt.EnabledTargetBar)
 
     return frame
 end

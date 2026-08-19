@@ -9,7 +9,6 @@ local prefix = "!HBLyx_Tools_FocusInterrupt_"
 GUI.TagPanels.Profile = {}
 function GUI.TagPanels.Profile:CreateTabPanel(parent)
     local frame = GUI:CreateScrollFrame(parent)
-    frame:SetLayout("Flow")
 
     -- MARK: General Profile
     local generalProfileGroup = GUI:CreateInlineGroup(frame, L["Profile"])

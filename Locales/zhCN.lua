@@ -20,7 +20,8 @@ L["Release_Info"] = "官方发布版本|cffff0000仅在以下地址提供, 其�
 
 -- MARK: Change Log
 L["ChangeLog"] = "更新日志"
-L["ChangeLogContent"] = "完整的更新日志可以在以下地址找到: \n https://discord.gg/NkjEKddwDr"
+L["ChangeLogContent"] = "完整的更新日志可以在以下地址找到:"
+L["ChangeLogLink"] = "https://discord.gg/NkjEKddwDr"
 
 --MARK: Issues
 L["Issues"] = "问题"
