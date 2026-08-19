@@ -1,4 +1,4 @@
-local addon = select(2, ...)
+local ADDON_NAME, addon = ...
 
 --- HBLyx GUI Core
 --- @author HBLyx
@@ -216,6 +216,12 @@ function UICore:ComputeContentPosition(container, widget)
     container.rowMaxHeight = rowMaxHeight
 
     return currentX, currentY
+end
+
+---Get the directory of the UI
+---@return string the directory of the UI
+function UICore:GetUIDirectory()
+    return "Interface\\AddOns\\" .. ADDON_NAME .. "\\GUI\\"
 end
 
 -- initialize UI Utility

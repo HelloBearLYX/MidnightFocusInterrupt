@@ -25,6 +25,7 @@ It replaces AceGUI-3.0 for the addon's own panels while keeping a similar mental
 | `TextRegion.lua` | Full width, auto height wrapped text |
 | `LineSeperator.lua` | Full width horizontal line which separates groups |
 
+
 ## Core concepts
 
 ### Widget contract
