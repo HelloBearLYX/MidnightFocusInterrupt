@@ -116,8 +116,8 @@ Sound dropdown, every entry has a speaker which plays it
 local SoundDropdown = setmetatable({ type = "SoundDropdown" }, { __index = Dropdown })
 
 local SPEAKER_SIZE = 14
-local SPEAKER_TEXTURE = addon.UICore:GetUIDirectory() .. "Assets\\Media_Play.png" -- Interface\\Common\\VoiceChat-Speaker
-local SPEAKER_ON_TEXTURE = addon.UICore:GetUIDirectory() .. "Assets\\Media_Play.png" -- Interface\\Common\\VoiceChat-On
+local SPEAKER_TEXTURE = addon.UICore:GetAssetDirectory() .. "Media_Play.png" -- Interface\\Common\\VoiceChat-Speaker
+local SPEAKER_ON_TEXTURE = addon.UICore:GetAssetDirectory() .. "Media_Play.png" -- Interface\\Common\\VoiceChat-On
 
 -- the sound list of LibSharedMedia is fetched once and then shared by every sound dropdown
 local soundList

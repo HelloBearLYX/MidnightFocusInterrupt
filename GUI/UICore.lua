@@ -218,10 +218,10 @@ function UICore:ComputeContentPosition(container, widget)
     return currentX, currentY
 end
 
----Get the directory of the UI
----@return string the directory of the UI
-function UICore:GetUIDirectory()
-    return "Interface\\AddOns\\" .. ADDON_NAME .. "\\GUI\\"
+---Get the directory of the UI's assets, which is the GUI folder of the addon
+---@return string the directory of the UI's assets
+function UICore:GetAssetDirectory()
+    return "Interface\\AddOns\\" .. ADDON_NAME .. "\\GUI\\Assets\\"
 end
 
 -- initialize UI Utility

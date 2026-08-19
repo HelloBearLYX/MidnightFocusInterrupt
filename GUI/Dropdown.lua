@@ -34,7 +34,7 @@ local BACKDROP = {
     insets = { left = 1, right = 1, top = 1, bottom = 1 }
 }
 -- get the arrow texture from the addon assets folder, so that it works even if the default arrow texture is missing
-local ARROW_FILE = addon.UICore:GetUIDirectory() .. "\\Assets\\Dropdown_Arrow.png"
+local ARROW_FILE = addon.UICore:GetAssetDirectory() .. "Dropdown_Arrow.png"
 
 local SELECTED_COLOR = { 1, 0.82, 0, 1 }
 local NORMAL_COLOR = { 1, 1, 1, 1 }
