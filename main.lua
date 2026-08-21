@@ -59,16 +59,6 @@ local function InitializeConfig()
 	-- initialize configurations
 	ProfileHandler(addon.configurationList)
 
-	local options = {
-		name = ADDON_NAME,
-		handler = self,
-		type = "group",
-		args = addon.optionsList
-  	}
-
-	LibStub("AceConfig-3.0"):RegisterOptionsTable(ADDON_NAME, options)
-  	LibStub("AceConfigDialog-3.0"):AddToBlizOptions(ADDON_NAME, "|cff8788ee"..  ADDON_NAME .. "|r")
-
 	-- LDB register
 	local ldb = LibStub("LibDataBroker-1.1"):NewDataObject(ADDON_NAME, {
 		type = "data source",
