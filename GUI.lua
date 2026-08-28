@@ -32,7 +32,7 @@ local WIDGET_WIDTH = 220
 local CLOSE_BUTTON_SIZE = TOOLBAR_FRAME_HEIGHT
 
 local HEADER_COLOR = "|cFFFFFFFF"
-local SECTION_COLOR = "|cFFFFFFFF"
+local SECTION_COLOR = "|cff8788ee"
 
 local CLOSE_BUTTON_TEXTURE = "Interface\\AddOns\\MidnightFocusInterrupt\\GUI\\Assets\\Close_Button.png"
 
