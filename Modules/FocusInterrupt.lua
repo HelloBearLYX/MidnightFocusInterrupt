@@ -19,6 +19,7 @@ local FocusInterrupt = {
     kickIcon = nil,
     subKickIcon = nil,
     warlockEventFrame = nil,
+    lastPet = nil, -- for Demo Warlock, to record the last interrupt used, as the interruptID is switched by pet summoned
 }
 
 -- MARK: Constants
@@ -63,6 +64,13 @@ end
 -- private methods
 
 -- MARK: Get Demo Warlock ID
+local function SetDemoWarlockInterrupt(self, unit, spellID)
+    if unit == "player" and WARLOCK_PET_SUMMON[spellID] then
+        self.interruptID = WARLOCK_PET_SUMMON[spellID]
+        self.lastPet = spellID
+    end
+end
+
 local function InitializeDemoWarlockInterruptIDSwitch(self)
     -- 12.1 since some Demo Warlock use the regular warlock interrupt
     -- need to switch the interrupt id according to the pet uses
@@ -72,10 +80,18 @@ local function InitializeDemoWarlockInterruptIDSwitch(self)
     self.warlockEventFrame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
     self.warlockEventFrame:SetScript("OnEvent", function(_, _, ...)
         local unit, _, spellID = ...
-        if unit == "player" and WARLOCK_PET_SUMMON[spellID] then
-            self.interruptID = WARLOCK_PET_SUMMON[spellID]
-        end
+        SetDemoWarlockInterrupt(self, unit, spellID)
     end)
+
+    -- defaultly the last pet is Felguard
+    -- if the player is first time to switch to Demo Warlock/enter the world
+    -- defaultly, set the lastPet to Felguard, as it is the most common pet for Demo Warlock
+    -- otherwise, use the lastPet to determine the interruptID
+    if not self.lastPet then
+        self.lastPet = 30146
+    end
+
+    return WARLOCK_PET_SUMMON[self.lastPet]
 end
 
 -- MARK: Get Interrupt ID
@@ -93,8 +109,9 @@ local function GetInterruptSpellID(self)
         -- 12.05 the GRIMOIRE and subInterrupt was removed from demo warlock, temperarily keep the code but diasable this function
         -- self.subInterrupt = INTERRUPT_BY_CLASS[addon.states["playerClass"]].DEMONOLOGY_SUB
 
-        output = INTERRUPT_BY_CLASS[addon.states["playerClass"]].DEMONOLOGY -- first defaultly set Demonology's interruptID
-        InitializeDemoWarlockInterruptIDSwitch(self) -- then initialize the event frame to switch interruptID according to the pet summoned
+        -- then initialize the event frame to switch interruptID according to the pet summoned
+        -- it also automatically set the self.interruptID
+        output = InitializeDemoWarlockInterruptIDSwitch(self)
     elseif addon.states["playerSpec"] == 102 then -- balance druid
         output = INTERRUPT_BY_CLASS[addon.states["playerClass"]].BALANCE
     elseif addon.states["playerSpec"] == 255 then -- survival hunter
@@ -427,9 +444,7 @@ end
 local function UpdateInterruptId(self)
     self.interruptID = GetInterruptSpellID(self)
 
-    for unit, _ in pairs(self.bars) do
-        LoadInterruptIcon(self)
-    end
+    LoadInterruptIcon(self)
 end
 
 ---Handle Kick Spark
