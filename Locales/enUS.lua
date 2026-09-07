@@ -88,10 +88,6 @@ L["InterruptibleColor"] = "Interruptible Color"
 L["NotInterruptibleColor"] = "Non-Interruptible Color"
 L["FrameStrata"] = "Frame Strata Level"
 
--- MARK: Default values
--- focus interrupt
-L["FocusDefaultSound"] = "Interface\\AddOns\\" .. ADDON_NAME .. "\\Media\\kick.ogg"
-
 -- MARK: Focus Interrupt
 L["FocusInterruptSettings"] = "Focus Interrupt"
 L["FocusInterruptSettingsDesc"] = "Focus Interrupt alert and Focus Cast Bar settings"

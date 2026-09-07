@@ -91,10 +91,6 @@ L["InterruptibleColor"] = "可打断颜色"
 L["NotInterruptibleColor"] = "不可打断颜色"
 L["FrameStrata"] = "框架层级"
 
--- MARK: Default values
--- focus interrupt
-L["FocusDefaultSound"] = "Interface\\AddOns\\" .. ADDON_NAME .. "\\Media\\kick_chinese.ogg"
-
 -- MARK: Focus Interrupt
 L["FocusInterruptSettings"] = "焦点打断"
 L["FocusInterruptSettingsDesc"] = "焦点打断警报与焦点施法条设置"

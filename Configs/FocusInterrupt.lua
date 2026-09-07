@@ -3,8 +3,6 @@ local L = LibStub("AceLocale-3.0"):GetLocale(ADDON_NAME)
 local GUI = addon.GUI
 local MOD_KEY = "FocusInterrupt"
 
-addon.LSM:Register("sound", ADDON_NAME.. "_FocusDefault", L["FocusDefaultSound"])
-
 -- MARK: Defaults
 addon.configurationList[MOD_KEY] = {
     Enabled = true,

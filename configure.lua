@@ -2,6 +2,9 @@ local ADDON_NAME, addon = ...
 local L = LibStub("AceLocale-3.0"):GetLocale(ADDON_NAME)
 
 addon.LSM = LibStub("LibSharedMedia-3.0")
+addon.DEFAULTS = {
+	font = "Fonts\\FRIZQT__.TTF",
+}
 
 -- localization handler
 addon.Locale = GetLocale()
