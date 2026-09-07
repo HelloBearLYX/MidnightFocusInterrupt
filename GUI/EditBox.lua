@@ -113,9 +113,9 @@ function EditBox:SetLabel(text)
 end
 
 function EditBox:SetFontSize(size)
-    self.label:SetFont("Fonts\\FRIZQT__.TTF", size or 12, "OUTLINE")
-    self.editBox:SetFont("Fonts\\FRIZQT__.TTF", size or 12, "OUTLINE")
-    self.button.text:SetFont("Fonts\\FRIZQT__.TTF", size or 12, "OUTLINE")
+    self.label:SetFont(addon.UICore:GetDefaultFont(), size or 12, "OUTLINE")
+    self.editBox:SetFont(addon.UICore:GetDefaultFont(), size or 12, "OUTLINE")
+    self.button.text:SetFont(addon.UICore:GetDefaultFont(), size or 12, "OUTLINE")
 end
 
 function EditBox:SetPoint(anchorFrom, relativeTo, anchorTo, x, y)
@@ -232,7 +232,7 @@ function EditBox:Create(parent, width, height, labelText, text)
     frame.obj = widget
 
     local label = frame:CreateFontString(nil, "OVERLAY")
-    label:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+    label:SetFont(addon.UICore:GetDefaultFont(), 12, "OUTLINE")
     label:SetTextColor(1, 1, 1, 1)
     label:SetText(labelText or "")
     label:SetJustifyH("LEFT")
@@ -243,7 +243,7 @@ function EditBox:Create(parent, width, height, labelText, text)
     editBox:SetBackdrop(BACKDROP)
     editBox:SetBackdropColor(0, 0, 0, 0.5)
     editBox:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
-    editBox:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+    editBox:SetFont(addon.UICore:GetDefaultFont(), 12, "OUTLINE")
     editBox:SetTextColor(1, 1, 1, 1)
     editBox:SetTextInsets(TEXT_INSET, TEXT_INSET, 0, 0)
     editBox:SetJustifyH("LEFT")
@@ -262,7 +262,7 @@ function EditBox:Create(parent, width, height, labelText, text)
     button.obj = widget
 
     local buttonText = button:CreateFontString(nil, "OVERLAY")
-    buttonText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+    buttonText:SetFont(addon.UICore:GetDefaultFont(), 12, "OUTLINE")
     buttonText:SetTextColor(1, 1, 1, 1)
     buttonText:SetText(OKAY or "OK")
     buttonText:SetPoint("CENTER", button, "CENTER", 0, 0)

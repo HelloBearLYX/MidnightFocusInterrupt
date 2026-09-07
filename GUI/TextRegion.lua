@@ -82,7 +82,7 @@ function TextRegion:GetText()
 end
 
 function TextRegion:SetFontSize(size)
-    self.label:SetFont("Fonts\\FRIZQT__.TTF", size or DEFAULT_FONT_SIZE, "OUTLINE")
+    self.label:SetFont(addon.UICore:GetDefaultFont(), size or DEFAULT_FONT_SIZE, "OUTLINE")
     UpdateLayout(self)
 end
 
@@ -181,7 +181,7 @@ function TextRegion:Create(parent, width, text)
     frame.obj = widget
 
     local label = frame:CreateFontString(nil, "OVERLAY")
-    label:SetFont("Fonts\\FRIZQT__.TTF", DEFAULT_FONT_SIZE, "OUTLINE")
+    label:SetFont(addon.UICore:GetDefaultFont(), DEFAULT_FONT_SIZE, "OUTLINE")
     label:SetTextColor(1, 1, 1, 1)
     label:SetJustifyH("LEFT")
     label:SetJustifyV("TOP")

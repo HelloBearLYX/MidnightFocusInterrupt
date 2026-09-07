@@ -161,7 +161,7 @@ function ScrollFrame:Create(parent, width, height, title)
     -- title bar
     local titleBar = frame:CreateFontString(nil, "OVERLAY")
     titleBar:SetPoint("BOTTOM", frame, "TOP", 0, 0)
-    titleBar:SetFont("Fonts\\FRIZQT__.TTF", TITLE_FONT_SIZE, "OUTLINE")
+    titleBar:SetFont(addon.UICore:GetDefaultFont(), TITLE_FONT_SIZE, "OUTLINE")
     titleBar:SetText(title or "")
 
     -- content

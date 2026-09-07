@@ -111,8 +111,8 @@ function MultiLineEditBox:SetLabel(text)
 end
 
 function MultiLineEditBox:SetFontSize(size)
-    self.label:SetFont("Fonts\\FRIZQT__.TTF", size or 12, "OUTLINE")
-    self.editBox:SetFont("Fonts\\FRIZQT__.TTF", size or 12, "")
+    self.label:SetFont(addon.UICore:GetDefaultFont(), size or 12, "OUTLINE")
+    self.editBox:SetFont(addon.UICore:GetDefaultFont(), size or 12, "")
 end
 
 function MultiLineEditBox:SetPoint(anchorFrom, relativeTo, anchorTo, x, y)
@@ -231,7 +231,7 @@ function MultiLineEditBox:Create(parent, width, height, labelText, text)
     frame.obj = widget
 
     local label = frame:CreateFontString(nil, "OVERLAY")
-    label:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+    label:SetFont(addon.UICore:GetDefaultFont(), 12, "OUTLINE")
     label:SetTextColor(1, 1, 1, 1)
     label:SetText(labelText or "")
     label:SetJustifyH("LEFT")
@@ -253,7 +253,7 @@ function MultiLineEditBox:Create(parent, width, height, labelText, text)
     local editBox = CreateFrame("EditBox", nil, scroll)
     editBox:SetMultiLine(true)
     editBox:SetAutoFocus(false)
-    editBox:SetFont("Fonts\\FRIZQT__.TTF", 12, "")
+    editBox:SetFont(addon.UICore:GetDefaultFont(), 12, "")
     editBox:SetTextColor(1, 1, 1, 1)
     editBox:SetJustifyH("LEFT")
     editBox:SetWidth(width - TEXT_INSET * 2)
@@ -276,7 +276,7 @@ function MultiLineEditBox:Create(parent, width, height, labelText, text)
     button.obj = widget
 
     local buttonText = button:CreateFontString(nil, "OVERLAY")
-    buttonText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+    buttonText:SetFont(addon.UICore:GetDefaultFont(), 12, "OUTLINE")
     buttonText:SetTextColor(1, 1, 1, 1)
     buttonText:SetText(ACCEPT or "Accept")
     buttonText:SetPoint("CENTER", button, "CENTER", 0, 0)

@@ -3,7 +3,18 @@ local L = LibStub("AceLocale-3.0"):GetLocale(ADDON_NAME)
 
 addon.LSM = LibStub("LibSharedMedia-3.0")
 
-local optionOrder = 1
+-- localization handler
+addon.Locale = GetLocale()
+if addon.Locale == "zhCN" then
+    -- Simplified Chinese
+	addon.DEFAULTS.font = "Fonts\\ARHei.ttf"
+elseif addon.Locale == "zhTW" then
+    -- Traditional Chinese
+	addon.DEFAULTS.font = "Fonts\\blei.ttf"
+elseif addon.Locale == "koKR" then
+    -- English
+	addon.DEFAULTS.font = "Fonts\\2002.ttf"
+end
 
 ---Show the RLNeeded popup dialog
 ---@param dialogName string dialog name

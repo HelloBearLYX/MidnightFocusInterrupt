@@ -90,7 +90,7 @@ function ColorPicker:SetLabel(text)
 end
 
 function ColorPicker:SetFontSize(size)
-    self.label:SetFont("Fonts\\FRIZQT__.TTF", size or 12, "OUTLINE")
+    self.label:SetFont(addon.UICore:GetDefaultFont(), size or 12, "OUTLINE")
 end
 
 function ColorPicker:SetPoint(anchorFrom, relativeTo, anchorTo, x, y)
@@ -205,7 +205,7 @@ function ColorPicker:Create(parent, width, height, labelText, r, g, b, a)
     frame.obj = widget
 
     local label = frame:CreateFontString(nil, "OVERLAY")
-    label:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+    label:SetFont(addon.UICore:GetDefaultFont(), 12, "OUTLINE")
     label:SetTextColor(1, 1, 1, 1)
     label:SetText(labelText or "")
     label:SetJustifyH("LEFT")

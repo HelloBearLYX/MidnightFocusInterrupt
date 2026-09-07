@@ -600,7 +600,7 @@ local function UpdateBarStyle(self, unit)
     -- spell text
     local spellText = self.bars[unit].spellText
     spellText:SetFont(
-        addon.LSM:Fetch("font", addon.db[self.modName][unit .. "Font"]) or "Fonts\\FRIZQT__.TTF",
+        addon.LSM:Fetch("font", addon.db[self.modName][unit .. "Font"]) or addon.DEFAULTS.font,
         addon.db[self.modName][unit .. "FontSize"],
         "OUTLINE"
     )
@@ -609,7 +609,7 @@ local function UpdateBarStyle(self, unit)
     -- target text
     local targetText = self.bars[unit].targetText
     targetText:SetFont(
-        addon.LSM:Fetch("font", addon.db[self.modName][unit .. "Font"]) or "Fonts\\FRIZQT__.TTF",
+        addon.LSM:Fetch("font", addon.db[self.modName][unit .. "Font"]) or addon.DEFAULTS.font,
         addon.db[self.modName][unit .. "FontSize"],
         "OUTLINE"
     )
@@ -624,7 +624,7 @@ local function UpdateBarStyle(self, unit)
     -- time text
     local timeText = self.bars[unit].timeText
     timeText:SetFont(
-        addon.LSM:Fetch("font", addon.db[self.modName][unit .. "Font"]) or "Fonts\\FRIZQT__.TTF",
+        addon.LSM:Fetch("font", addon.db[self.modName][unit .. "Font"]) or addon.DEFAULTS.font,
         addon.db[self.modName][unit .. "FontSize"],
         "OUTLINE"
     )

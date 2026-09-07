@@ -121,8 +121,8 @@ function Slider:SetLabel(text)
 end
 
 function Slider:SetFontSize(size)
-    self.label:SetFont("Fonts\\FRIZQT__.TTF", size or 12, "OUTLINE")
-    self.editBox:SetFont("Fonts\\FRIZQT__.TTF", size or 12, "OUTLINE")
+    self.label:SetFont(addon.UICore:GetDefaultFont(), size or 12, "OUTLINE")
+    self.editBox:SetFont(addon.UICore:GetDefaultFont(), size or 12, "OUTLINE")
 end
 
 function Slider:SetPoint(anchorFrom, relativeTo, anchorTo, x, y)
@@ -247,7 +247,7 @@ function Slider:Create(parent, width, height, labelText, min, max, step, value)
     frame.obj = widget
 
     local label = frame:CreateFontString(nil, "OVERLAY")
-    label:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+    label:SetFont(addon.UICore:GetDefaultFont(), 12, "OUTLINE")
     label:SetTextColor(1, 1, 1, 1)
     label:SetText(labelText or "")
     label:SetJustifyH("LEFT")
@@ -272,18 +272,18 @@ function Slider:Create(parent, width, height, labelText, min, max, step, value)
     slider:SetThumbTexture(thumb)
 
     local lowText = slider:CreateFontString(nil, "ARTWORK")
-    lowText:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE")
+    lowText:SetFont(addon.UICore:GetDefaultFont(), 10, "OUTLINE")
     lowText:SetPoint("TOPLEFT", slider, "BOTTOMLEFT", 0, 0)
 
     local highText = slider:CreateFontString(nil, "ARTWORK")
-    highText:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE")
+    highText:SetFont(addon.UICore:GetDefaultFont(), 10, "OUTLINE")
     highText:SetPoint("TOPRIGHT", slider, "BOTTOMRIGHT", 0, 0)
 
     local editBox = CreateFrame("EditBox", nil, frame, "BackdropTemplate")
     editBox:SetBackdrop(BACKDROP)
     editBox:SetBackdropColor(0, 0, 0, 0.5)
     editBox:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
-    editBox:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+    editBox:SetFont(addon.UICore:GetDefaultFont(), 12, "OUTLINE")
     editBox:SetJustifyH("CENTER")
     editBox:SetAutoFocus(false)
     editBox:SetNumeric(false)

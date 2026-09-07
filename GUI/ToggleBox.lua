@@ -64,7 +64,7 @@ function ToggleBox:SetText(text)
 end
 
 function ToggleBox:SetFontSize(size)
-    self.text:SetFont("Fonts\\FRIZQT__.TTF", size or 12, "OUTLINE")
+    self.text:SetFont(addon.UICore:GetDefaultFont(), size or 12, "OUTLINE")
 end
 
 function ToggleBox:SetPoint(anchorFrom, relativeTo, anchorTo, x, y)
@@ -193,7 +193,7 @@ function ToggleBox:Create(parent, width, height, buttonText, value)
     box:SetPoint("LEFT", button, "LEFT", 0, 0)
 
     local text = button:CreateFontString(nil, "OVERLAY")
-    text:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+    text:SetFont(addon.UICore:GetDefaultFont(), 12, "OUTLINE")
     text:SetTextColor(1, 1, 1, 1)
     text:SetText(buttonText or "")
     text:SetPoint("LEFT", box, "RIGHT", PADDING, 0)

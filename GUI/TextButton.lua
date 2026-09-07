@@ -49,7 +49,7 @@ function TextButton:SetText(text)
 end
 
 function TextButton:SetFontSize(size)
-    self.text:SetFont("Fonts\\FRIZQT__.TTF", size or 12, "OUTLINE")
+    self.text:SetFont(addon.UICore:GetDefaultFont(), size or 12, "OUTLINE")
 end
 
 function TextButton:SetColor(r, g, b, a)
@@ -163,7 +163,7 @@ function TextButton:Create(parent, width, height, buttonText)
     button:SetPoint("CENTER", frame, "CENTER", 0, 0)
 
     local text = button:CreateFontString(nil, "OVERLAY")
-    text:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+    text:SetFont(addon.UICore:GetDefaultFont(), 12, "OUTLINE")
     text:SetTextColor(1, 1, 1, 1)
     text:SetText(buttonText or "")
     text:SetPoint("CENTER", button, "CENTER", 0, 0)

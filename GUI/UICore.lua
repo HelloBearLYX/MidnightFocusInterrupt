@@ -39,6 +39,20 @@ local ERROR_MSG ={
     ["InvalidType"] = "Invalid widget type: %s",
 }
 
+-- localization default values
+local DEFAULT_FONT = "Fonts\\FRIZQT__.TTF"
+local LOCALE = GetLocale()
+if LOCALE == "zhCN" then
+    -- Simplified Chinese
+    DEFAULT_FONT = "Fonts\\ARHei.ttf"
+elseif LOCALE == "zhTW" then
+    -- Traditional Chinese
+    DEFAULT_FONT = "Fonts\\blei.ttf"
+elseif LOCALE == "koKR" then
+    -- Korean
+    DEFAULT_FONT = "Fonts\\2002.ttf"
+end
+
 -- MARK: frame pool
 -- since the frame are created with some invariants, a global general frame pool is also not a good idea, even if each frame got released totally before added into framePools.
 -- As there are many nested frame within a frame, the global general frame pool must release these nested frames also which mean tremendous complicated logic
@@ -222,6 +236,10 @@ end
 ---@return string the directory of the UI's assets
 function UICore:GetAssetDirectory()
     return "Interface\\AddOns\\" .. ADDON_NAME .. "\\GUI\\Assets\\"
+end
+
+function UICore:GetDefaultFont()
+    return DEFAULT_FONT
 end
 
 -- initialize UI Utility
