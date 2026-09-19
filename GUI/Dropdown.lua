@@ -27,17 +27,10 @@ local PADDING = 4
 local TEXT_INSET = 6
 local ARROW_SIZE = 12
 
-local BACKDROP = {
-    bgFile = "Interface\\Buttons\\WHITE8x8",
-    edgeFile = "Interface\\Buttons\\WHITE8x8",
-    tile = false, tileSize = 1, edgeSize = 1,
-    insets = { left = 1, right = 1, top = 1, bottom = 1 }
-}
 -- get the arrow texture from the addon assets folder, so that it works even if the default arrow texture is missing
 local ARROW_FILE = addon.UICore:GetAssetDirectory() .. "Dropdown_Arrow.png"
 
-local SELECTED_COLOR = { 1, 0.82, 0, 1 }
-local NORMAL_COLOR = { 1, 1, 1, 1 }
+local SELECTED_COLOR = addon.UICore:GetHighlightColor()
 
 -- MARK: Helpers
 
@@ -74,9 +67,9 @@ local function GetSearchBox(widget)
     if widget.searchBox then return widget.searchBox end
 
     local searchBox = CreateFrame("EditBox", nil, widget.pullout, "BackdropTemplate")
-    searchBox:SetBackdrop(BACKDROP)
-    searchBox:SetBackdropColor(0, 0, 0, 0.5)
-    searchBox:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+    searchBox:SetBackdrop(addon.UICore:GetDefaultBackdrop())
+    addon.UICore:SetBackdropColor(searchBox)
+    addon.UICore:SetBorderColor(searchBox)
     searchBox:SetFont(addon.UICore:GetDefaultFont(), 12, "OUTLINE")
     searchBox:SetTextInsets(TEXT_INSET, TEXT_INSET, 0, 0)
     searchBox:SetAutoFocus(false)
@@ -261,7 +254,7 @@ end
 
 function Dropdown:FormatItem(item, key)
     item.text:SetText(self.list[key] or tostring(key))
-    item.text:SetTextColor(unpack(self:IsSelected(key) and SELECTED_COLOR or NORMAL_COLOR))
+    item.text:SetTextColor(unpack(self:IsSelected(key) and SELECTED_COLOR or addon.UICore:GetNormalTextColor()))
 end
 
 function Dropdown:OnItemClick(key)
@@ -314,12 +307,12 @@ function Dropdown:SetDisabled(disabled)
     if self.disabled then
         self:Close()
         self.button:Disable()
-        self.label:SetTextColor(0.5, 0.5, 0.5, 1)
-        self.buttonText:SetTextColor(0.5, 0.5, 0.5, 1)
+        self.label:SetTextColor(unpack(addon.UICore:GetDisabledTextColor()))
+        self.buttonText:SetTextColor(unpack(addon.UICore:GetDisabledTextColor()))
     else
         self.button:Enable()
-        self.label:SetTextColor(1, 1, 1, 1)
-        self.buttonText:SetTextColor(1, 1, 1, 1)
+        self.label:SetTextColor(unpack(addon.UICore:GetNormalTextColor()))
+        self.buttonText:SetTextColor(unpack(addon.UICore:GetNormalTextColor()))
     end
 end
 
@@ -393,9 +386,9 @@ function Dropdown:Create(parent, width, height, labelText, list, order, value)
     label:SetSize(width, LABEL_HEIGHT)
 
     local button = CreateFrame("Button", nil, frame, "BackdropTemplate")
-    button:SetBackdrop(BACKDROP)
-    button:SetBackdropColor(0, 0, 0, 0.5)
-    button:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+    button:SetBackdrop(addon.UICore:GetDefaultBackdrop())
+    addon.UICore:SetBackdropColor(button)
+    addon.UICore:SetBorderColor(button)
     button:SetSize(width, height - LABEL_HEIGHT - PADDING)
     button:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -PADDING)
     button.obj = widget
@@ -424,9 +417,9 @@ function Dropdown:Create(parent, width, height, labelText, list, order, value)
     clicker:SetScript("OnMouseDown", function() widget:Close() end)
 
     local pullout = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
-    pullout:SetBackdrop(BACKDROP)
-    pullout:SetBackdropColor(0, 0, 0, 0.9)
-    pullout:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+    pullout:SetBackdrop(addon.UICore:GetDefaultBackdrop())
+    addon.UICore:SetBackdropColor(pullout, {0, 0, 0, 0.9})
+    addon.UICore:SetBorderColor(pullout)
     pullout:SetFrameStrata("FULLSCREEN_DIALOG")
     pullout:SetFrameLevel(clicker:GetFrameLevel() + 10)
     pullout:SetClampedToScreen(true)

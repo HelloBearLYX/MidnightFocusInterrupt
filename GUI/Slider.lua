@@ -26,13 +26,6 @@ local CONTROL_HEIGHT = 20
 local EDITBOX_WIDTH = 50
 local PADDING = 4
 
-local BACKDROP = {
-    bgFile = "Interface\\Buttons\\WHITE8x8",
-    edgeFile = "Interface\\Buttons\\WHITE8x8",
-    tile = false, tileSize = 1, edgeSize = 1,
-    insets = { left = 1, right = 1, top = 1, bottom = 1 }
-}
-
 -- MARK: Helpers
 
 ---Round the value to the closest valid step within [min, max]
@@ -197,13 +190,13 @@ function Slider:SetDisabled(disabled)
         self.slider:Disable()
         self.editBox:EnableMouse(false)
         self.editBox:ClearFocus()
-        self.label:SetTextColor(0.5, 0.5, 0.5, 1)
-        self.thumb:SetVertexColor(0.5, 0.5, 0.5, 1)
+        self.label:SetTextColor(unpack(addon.UICore:GetDisabledTextColor()))
+        self.thumb:SetVertexColor(unpack(addon.UICore:GetDisabledTextColor()))
     else
         self.slider:Enable()
         self.editBox:EnableMouse(true)
-        self.label:SetTextColor(1, 1, 1, 1)
-        self.thumb:SetVertexColor(1, 1, 1, 1)
+        self.label:SetTextColor(unpack(addon.UICore:GetNormalTextColor()))
+        self.thumb:SetVertexColor(unpack(addon.UICore:GetNormalTextColor()))
     end
 end
 
@@ -255,9 +248,9 @@ function Slider:Create(parent, width, height, labelText, min, max, step, value)
     label:SetSize(width, LABEL_HEIGHT)
 
     local slider = CreateFrame("Slider", nil, frame, "BackdropTemplate")
-    slider:SetBackdrop(BACKDROP)
-    slider:SetBackdropColor(0, 0, 0, 0.5)
-    slider:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+    slider:SetBackdrop(addon.UICore:GetDefaultBackdrop())
+    addon.UICore:SetBackdropColor(slider)
+    addon.UICore:SetBorderColor(slider)
     slider:SetOrientation("HORIZONTAL")
     slider:SetHitRectInsets(0, 0, -4, -4)
     slider:SetSize(width - EDITBOX_WIDTH - PADDING, height - LABEL_HEIGHT - PADDING)
@@ -280,9 +273,9 @@ function Slider:Create(parent, width, height, labelText, min, max, step, value)
     highText:SetPoint("TOPRIGHT", slider, "BOTTOMRIGHT", 0, 0)
 
     local editBox = CreateFrame("EditBox", nil, frame, "BackdropTemplate")
-    editBox:SetBackdrop(BACKDROP)
-    editBox:SetBackdropColor(0, 0, 0, 0.5)
-    editBox:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+    editBox:SetBackdrop(addon.UICore:GetDefaultBackdrop())
+    addon.UICore:SetBackdropColor(editBox)
+    addon.UICore:SetBorderColor(editBox)
     editBox:SetFont(addon.UICore:GetDefaultFont(), 12, "OUTLINE")
     editBox:SetJustifyH("CENTER")
     editBox:SetAutoFocus(false)

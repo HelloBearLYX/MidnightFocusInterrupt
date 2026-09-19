@@ -5,7 +5,7 @@ if not L then return end
 L["Welecome"] = "|cff8788ee" .. ADDON_NAME .. "|r: 欢迎! 你的配置已经被重置, 你可以在: ESC-选项-插件-|cff8788ee" .. ADDON_NAME .. "|r里更改设置"
 L["WelecomeInfo"] = "欢迎! 感谢你使用|cff8788ee" .. ADDON_NAME .. "|r!"
 L["WelecomeSetting"] = "你可以使用 \"|cff8788ee/mfi|r\" 命令或在 ESC-选项-插件-|cff8788ee" .. ADDON_NAME .. "|r 中打开配置面板来更改设置"
-L["GUITitle"] = "|cff8788ee" .. ADDON_NAME .. "|r配置面板"
+L["GUITitle"] = "%s" .. ADDON_NAME .. "|r v%s 配置面板"
 L["Notifications"] = "通知"
 L["NotificationContent"] = "选项界面中的标签页显示了本插件包含的模块, 你可以分别配置每个模块" .. "\n\n" ..
 "你可以在|cff8788eeHBLyx|r的CurseForge页面里找到:" .. "\n" ..
@@ -123,7 +123,7 @@ L["TargetBarSettings"] = "目标施法条设置"
 L["TargetBarSettingsDesc"] = "|cffffff00启用一个与焦点施法条相同的目标施法条|r。大部分设置是共享的, 只有下面的样式设置是独立的。"
 -- Spark Settings
 L["SparkSettings"] = "火花设置"
-L["SparkEnabled"] = "启用火花"
+L["SparkEnabled"] = "施法火花"
 L["KickSparkEnabled"] = "打断火花"
 L["SparkColor"] = "火花颜色"
 L["SparkWidth"] = "火花宽度"

@@ -144,6 +144,59 @@ function UICore:Build(widgetType)
     return widget
 end
 
+-- MARK: backdrop
+-- every widget shares the same backdrop shape and default colors, so it is centralized here
+-- instead of being duplicated as a local BACKDROP table in every widget file
+local DEFAULT_BACKDROP = {
+    bgFile = "Interface\\Buttons\\WHITE8x8",
+    edgeFile = "Interface\\Buttons\\WHITE8x8",
+    tile = false, tileSize = 1, edgeSize = 1,
+    insets = { left = 0, right = 0, top = 0, bottom = 0 }
+}
+local DEFAULT_BACKDROP_COLOR = {0, 0, 0, 0.5}
+local DEFAULT_BORDER_COLOR = {0, 0, 0, 1}
+local HIGHLIGHT_COLOR = {0.529, 0.533, 0.933, 1}
+local NORMAL_TEXT_COLOR = {1, 1, 1, 1}
+local DISABLED_TEXT_COLOR = {0.5, 0.5, 0.5, 1}
+
+---Get the shared backdrop shape used across every widget
+---@return table backdrop
+function UICore:GetDefaultBackdrop()
+    return DEFAULT_BACKDROP
+end
+
+function UICore:GetHighlightColor()
+    return HIGHLIGHT_COLOR
+end
+
+---Get the shared text color used by an enabled widget
+---@return table color {r, g, b, a}
+function UICore:GetNormalTextColor()
+    return NORMAL_TEXT_COLOR
+end
+
+---Get the shared text color used by a disabled widget
+---@return table color {r, g, b, a}
+function UICore:GetDisabledTextColor()
+    return DISABLED_TEXT_COLOR
+end
+
+---Set the background color of a backdrop frame, falling back to the shared default
+---@param frame frame|BackdropTemplate the frame to color
+---@param color table? {r, g, b, a}, defaults to the shared background color
+function UICore:SetBackdropColor(frame, color)
+    color = color or DEFAULT_BACKDROP_COLOR
+    frame:SetBackdropColor(unpack(color))
+end
+
+---Set the border color of a backdrop frame, falling back to the shared default
+---@param frame frame|BackdropTemplate the frame to color
+---@param color table? {r, g, b, a}, defaults to the shared border color
+function UICore:SetBorderColor(frame, color)
+    color = color or DEFAULT_BORDER_COLOR
+    frame:SetBackdropBorderColor(unpack(color))
+end
+
 -- MARK: hover
 local HOVER_COLOR = {1, 1, 1, 0.25}
 

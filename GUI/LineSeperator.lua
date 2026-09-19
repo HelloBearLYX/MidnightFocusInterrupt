@@ -14,7 +14,7 @@ local LineSeperator = {
 local DEFAULT_WIDTH = 200
 local DEFAULT_HEIGHT = 9
 local DEFAULT_THICKNESS = 1
-local DEFAULT_COLOR = { 1, 1, 1, 0.4 }
+local DEFAULT_COLOR = { 1, 1, 1, 0.5 }
 
 -- MARK: API
 function LineSeperator:SetParent(parent)

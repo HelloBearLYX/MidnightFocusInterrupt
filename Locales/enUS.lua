@@ -4,7 +4,7 @@ local L = LibStub("AceLocale-3.0"):NewLocale(ADDON_NAME, "enUS", true)
 L["Welecome"] = "|cff8788ee" .. ADDON_NAME .. "|r: Welcome! Your profile has been reset, and you can set up in: ESC-Options-AddOns-|cff8788ee" .. ADDON_NAME .. "|r"
 L["WelecomeInfo"] = "Welecome! Thank you for using |cff8788ee" .. ADDON_NAME .. "|r!"
 L["WelecomeSetting"] = "You can change settings with \"|cff8788ee/mfi|r\" or open configuration panel in ESC-Options-AddOns-|cff8788ee" .. ADDON_NAME .. "|r"
-L["GUITitle"] = "|cff8788ee" .. ADDON_NAME .. "|r Configurations Panel"
+L["GUITitle"] = "%s" .. ADDON_NAME .. "|r v%s Configurations Panel"
 L["Notifications"] = "Notifications"
 L["NotificationContent"] = "The tabs shows modules contained in this addon, you can configure each module separately." .. "\n\n" .. 
 "You can find on |cff8788eeHBLyx|r's CurseForge page:" .. "\n" ..
@@ -120,7 +120,7 @@ L["TargetBarSettings"] = "Target Cast Bar Settings"
 L["TargetBarSettingsDesc"] = "|cffffff00Enable a target cast bar as same as the focus cast bar|r. Most settings are shared, only the style settings below are independent."
 -- Spark Settings
 L["SparkSettings"] = "Spark Settings"
-L["SparkEnabled"] = "Enable Spark"
+L["SparkEnabled"] = "Cast Spark"
 L["KickSparkEnabled"] = "Kick Spark"
 L["SparkColor"] = "Spark Color"
 L["SparkWidth"] = "Spark Width"

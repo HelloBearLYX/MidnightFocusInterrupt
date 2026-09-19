@@ -115,12 +115,12 @@ function ToggleBox:SetDisabled(disabled)
 
     if self.disabled then
         self.button:Disable()
-        self.text:SetTextColor(0.5, 0.5, 0.5, 1)
-        self.toggleOverlay:SetVertexColor(0.5, 0.5, 0.5, 1)
+        self.text:SetTextColor(unpack(addon.UICore:GetDisabledTextColor()))
+        self.toggleOverlay:SetVertexColor(unpack(addon.UICore:GetDisabledTextColor()))
     else
         self.button:Enable()
-        self.text:SetTextColor(1, 1, 1, 1)
-        self.toggleOverlay:SetVertexColor(1, 1, 1, 1)
+        self.text:SetTextColor(unpack(addon.UICore:GetNormalTextColor()))
+        self.toggleOverlay:SetVertexColor(unpack(addon.UICore:GetNormalTextColor()))
     end
 end
 
@@ -181,14 +181,9 @@ function ToggleBox:Create(parent, width, height, buttonText, value)
 
     -- the check box itself is a fixed square, centered on the row
     local box = CreateFrame("Frame", nil, button, "BackdropTemplate")
-    box:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        tile = false, tileSize = 1, edgeSize = 1,
-        insets = { left = 1, right = 1, top = 1, bottom = 1 }
-    })
-    box:SetBackdropColor(0, 0, 0, 0.5)
-    box:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+    box:SetBackdrop(addon.UICore:GetDefaultBackdrop())
+    addon.UICore:SetBackdropColor(box)
+    addon.UICore:SetBorderColor(box)
     box:SetSize(BUTTON_SIZE, BUTTON_SIZE)
     box:SetPoint("LEFT", button, "LEFT", 0, 0)
 

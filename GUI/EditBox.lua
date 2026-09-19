@@ -23,13 +23,6 @@ local BUTTON_WIDTH = 40
 local PADDING = 4
 local TEXT_INSET = 6
 
-local BACKDROP = {
-    bgFile = "Interface\\Buttons\\WHITE8x8",
-    edgeFile = "Interface\\Buttons\\WHITE8x8",
-    tile = false, tileSize = 1, edgeSize = 1,
-    insets = { left = 1, right = 1, top = 1, bottom = 1 }
-}
-
 -- MARK: Helpers
 
 ---Show or hide the accept button depending on whether the text is dirty
@@ -177,12 +170,12 @@ function EditBox:SetDisabled(disabled)
     if disabled then
         self.editBox:EnableMouse(false)
         self.editBox:ClearFocus()
-        self.editBox:SetTextColor(0.5, 0.5, 0.5, 1)
-        self.label:SetTextColor(0.5, 0.5, 0.5, 1)
+        self.editBox:SetTextColor(unpack(addon.UICore:GetDisabledTextColor()))
+        self.label:SetTextColor(unpack(addon.UICore:GetDisabledTextColor()))
     else
         self.editBox:EnableMouse(true)
-        self.editBox:SetTextColor(1, 1, 1, 1)
-        self.label:SetTextColor(1, 1, 1, 1)
+        self.editBox:SetTextColor(unpack(addon.UICore:GetNormalTextColor()))
+        self.label:SetTextColor(unpack(addon.UICore:GetNormalTextColor()))
     end
 end
 
@@ -240,9 +233,9 @@ function EditBox:Create(parent, width, height, labelText, text)
     label:SetSize(width, LABEL_HEIGHT)
 
     local editBox = CreateFrame("EditBox", nil, frame, "BackdropTemplate")
-    editBox:SetBackdrop(BACKDROP)
-    editBox:SetBackdropColor(0, 0, 0, 0.5)
-    editBox:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+    editBox:SetBackdrop(addon.UICore:GetDefaultBackdrop())
+    addon.UICore:SetBackdropColor(editBox)
+    addon.UICore:SetBorderColor(editBox)
     editBox:SetFont(addon.UICore:GetDefaultFont(), 12, "OUTLINE")
     editBox:SetTextColor(1, 1, 1, 1)
     editBox:SetTextInsets(TEXT_INSET, TEXT_INSET, 0, 0)
@@ -253,9 +246,9 @@ function EditBox:Create(parent, width, height, labelText, text)
     editBox.obj = widget
 
     local button = CreateFrame("Button", nil, frame, "BackdropTemplate")
-    button:SetBackdrop(BACKDROP)
-    button:SetBackdropColor(0, 0, 0, 0.5)
-    button:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+    button:SetBackdrop(addon.UICore:GetDefaultBackdrop())
+    addon.UICore:SetBackdropColor(button)
+    addon.UICore:SetBorderColor(button)
     button:SetSize(BUTTON_WIDTH, CONTROL_HEIGHT)
     button:SetPoint("LEFT", editBox, "RIGHT", PADDING, 0)
     button:Hide()

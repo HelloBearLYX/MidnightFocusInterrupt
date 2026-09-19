@@ -10,7 +10,7 @@ It replaces AceGUI-3.0 for the addon's own panels while keeping a similar mental
 | File | Purpose |
 | --- | --- |
 | `gui.xml` | Load order for the library, referenced by the `.toc` |
-| `UICore.lua` | Widget registry, frame pools, hover helper, color cycle, row layout math |
+| `UICore.lua` | Widget registry, frame pools, shared backdrop/color helpers, hover helper, color cycle, row layout math |
 | `ScrollFrame.lua` | Scrollable container |
 | `Window.lua` | Plain (non scrolling) container with a title |
 | `TextButton.lua` | Clickable button with a centered label |
@@ -134,7 +134,7 @@ button:SetText("Rebuild")
 button:SetOnClick(function(widget) end)
 ```
 
-`SetText`, `SetFontSize`, `SetColor`, `SetOnClick`, `SetOnEnter`, `SetOnLeave`.
+`SetText`, `SetFontSize`, `SetColor`, `SetOnClick`, `SetOnEnter`, `SetOnLeave`. The button highlights on hover, like every other clickable control.
 
 ### ToggleBox
 
@@ -298,6 +298,23 @@ container:AddWidget(line)
 
 `UICore:SetTooltip(widget, text, anchor)` wires the hover callbacks of any widget to a `GameTooltip`.
 
+Backdrop and text colors are centralized in `UICore` instead of being duplicated per widget file:
+
+| Method | Returns |
+| --- | --- |
+| `GetDefaultBackdrop()` | the shared backdrop shape (background + border texture) |
+| `SetBackdropColor(frame, color?)` | applies `color` or the shared background color to a backdrop frame |
+| `SetBorderColor(frame, color?)` | applies `color` or the shared border color to a backdrop frame |
+| `GetHighlightColor()` | the shared selection/highlight color |
+| `GetNormalTextColor()` | the shared enabled text color |
+| `GetDisabledTextColor()` | the shared disabled text color |
+
+```lua
+frame:SetBackdrop(addon.UICore:GetDefaultBackdrop())
+addon.UICore:SetBackdropColor(frame)   -- or SetBackdropColor(frame, {0, 0, 0, 0.9}) to override
+addon.UICore:SetBorderColor(frame)
+```
+
 ## Adding a new widget
 1. Create `GUI/MyWidget.lua` with a class table that has a `type` field.
 2. Implement `Create`, `Reuse`, `Release` and the layout surface listed above.
@@ -312,7 +329,7 @@ Store callbacks on the widget (`self.onClick`, `self.onValueChanged`, ...) inste
 | Element | Value |
 | --- | --- |
 | Background | `Interface\Buttons\WHITE8x8`, black at 50% (containers 80%) |
-| Border | 1px gray, `0.4, 0.4, 0.4` |
+| Border | `UICore:GetDefaultBackdrop()`/`SetBorderColor`, 1px |
 | Font | `Fonts\FRIZQT__.TTF`, 12 outline (titles 16 to 20) |
 | Hover | `UICore:BuildHover(frame)`, additive white at 25% |
 | Spacing | 8px between widgets and rows, 6px container inset |

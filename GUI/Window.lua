@@ -23,13 +23,6 @@ local DEFAULT_HEIGHT = 300
 local CONTENT_INSET = 6
 local ROW_SPACING = 8
 
-local BACKDROP = {
-    bgFile = "Interface\\Buttons\\WHITE8x8",
-    edgeFile = "Interface\\Buttons\\WHITE8x8",
-    tile = false, tileSize = 1, edgeSize = 1,
-    insets = { left = 1, right = 1, top = 1, bottom = 1 }
-}
-
 ---Recycle every widget currently held by the window and reset the layout cursor
 function Window:ReleaseChildren()
     for _, widget in ipairs(self.content) do
@@ -79,9 +72,9 @@ function Window:Create(parent, width, height)
     frame.obj = widget
 
     -- background and border
-    frame:SetBackdrop(BACKDROP)
-    frame:SetBackdropColor(0, 0, 0, 0.5)
-    frame:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+    frame:SetBackdrop(addon.UICore:GetDefaultBackdrop())
+    addon.UICore:SetBackdropColor(frame)
+    addon.UICore:SetBorderColor(frame)
     -- size and position
     frame:SetSize(width, height)
     frame:SetPoint("TOPLEFT", parent or UIParent, "TOPLEFT", 0, 0)

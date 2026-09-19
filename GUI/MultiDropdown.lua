@@ -11,7 +11,6 @@ local MultiDropdown = setmetatable({ type = "MultiDropdown" }, { __index = Dropd
 local CHECKED_ICON = "|TInterface\\Buttons\\UI-CheckBox-Check:14:14|t "
 local UNCHECKED_ICON = "|TInterface\\Buttons\\UI-CheckBox-Up:14:14|t "
 local SELECTED_COLOR = { 1, 0.82, 0, 1 }
-local NORMAL_COLOR = { 1, 1, 1, 1 }
 local SEPARATOR = ", "
 
 local function GetSelected(widget)
@@ -27,7 +26,7 @@ end
 function MultiDropdown:FormatItem(item, key)
     local checked = self:IsSelected(key)
     item.text:SetText((checked and CHECKED_ICON or UNCHECKED_ICON) .. tostring(self.list[key] or key))
-    item.text:SetTextColor(unpack(checked and SELECTED_COLOR or NORMAL_COLOR))
+    item.text:SetTextColor(unpack(checked and SELECTED_COLOR or addon.UICore:GetNormalTextColor()))
 end
 
 function MultiDropdown:GetDisplayText()

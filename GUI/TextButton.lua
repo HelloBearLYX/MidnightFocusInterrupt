@@ -53,7 +53,7 @@ function TextButton:SetFontSize(size)
 end
 
 function TextButton:SetColor(r, g, b, a)
-    self.button:SetBackdropColor(r or 0, g or 0, b or 0, a or 0.5)
+    addon.UICore:SetBackdropColor(self.button, r and {r, g or 0, b or 0, a or 0.5} or nil)
 end
 
 function TextButton:SetDisabled(disabled)
@@ -61,10 +61,10 @@ function TextButton:SetDisabled(disabled)
 
     if self.disabled then
         self.button:Disable()
-        self.text:SetTextColor(0.5, 0.5, 0.5, 1)
+        self.text:SetTextColor(unpack(addon.UICore:GetDisabledTextColor()))
     else
         self.button:Enable()
-        self.text:SetTextColor(1, 1, 1, 1)
+        self.text:SetTextColor(unpack(addon.UICore:GetNormalTextColor()))
     end
 end
 
@@ -145,14 +145,9 @@ function TextButton:Create(parent, width, height, buttonText)
     button.obj = widget
 
     -- background and border
-    button:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        tile = false, tileSize = 1, edgeSize = 1,
-        insets = { left = 1, right = 1, top = 1, bottom = 1 }
-    })
-    button:SetBackdropColor(0, 0, 0, 0.5)
-    button:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+    button:SetBackdrop(addon.UICore:GetDefaultBackdrop())
+    addon.UICore:SetBackdropColor(button)
+    addon.UICore:SetBorderColor(button)
     -- behavior
     button:EnableMouse(true)
     button:SetScript("OnClick", Button_OnClick)
@@ -161,6 +156,8 @@ function TextButton:Create(parent, width, height, buttonText)
     -- size and position
     button:SetSize(width or DEFAULT_WIDTH, ROW_HEIGHT)
     button:SetPoint("CENTER", frame, "CENTER", 0, 0)
+
+    addon.UICore:BuildHover(button)
 
     local text = button:CreateFontString(nil, "OVERLAY")
     text:SetFont(addon.UICore:GetDefaultFont(), 12, "OUTLINE")

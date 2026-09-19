@@ -24,13 +24,6 @@ local PADDING = 4
 local TEXT_INSET = 6
 local SCROLL_STEP = 20
 
-local BACKDROP = {
-    bgFile = "Interface\\Buttons\\WHITE8x8",
-    edgeFile = "Interface\\Buttons\\WHITE8x8",
-    tile = false, tileSize = 1, edgeSize = 1,
-    insets = { left = 1, right = 1, top = 1, bottom = 1 }
-}
-
 -- MARK: Helpers
 
 local function SetDirty(widget, dirty)
@@ -177,12 +170,12 @@ function MultiLineEditBox:SetDisabled(disabled)
     if self.disabled then
         self.editBox:EnableMouse(false)
         self.editBox:ClearFocus()
-        self.editBox:SetTextColor(0.5, 0.5, 0.5, 1)
-        self.label:SetTextColor(0.5, 0.5, 0.5, 1)
+        self.editBox:SetTextColor(unpack(addon.UICore:GetDisabledTextColor()))
+        self.label:SetTextColor(unpack(addon.UICore:GetDisabledTextColor()))
     else
         self.editBox:EnableMouse(true)
-        self.editBox:SetTextColor(1, 1, 1, 1)
-        self.label:SetTextColor(1, 1, 1, 1)
+        self.editBox:SetTextColor(unpack(addon.UICore:GetNormalTextColor()))
+        self.label:SetTextColor(unpack(addon.UICore:GetNormalTextColor()))
     end
 end
 
@@ -239,9 +232,9 @@ function MultiLineEditBox:Create(parent, width, height, labelText, text)
     label:SetSize(width, LABEL_HEIGHT)
 
     local scroll = CreateFrame("ScrollFrame", nil, frame, "BackdropTemplate")
-    scroll:SetBackdrop(BACKDROP)
-    scroll:SetBackdropColor(0, 0, 0, 0.5)
-    scroll:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+    scroll:SetBackdrop(addon.UICore:GetDefaultBackdrop())
+    addon.UICore:SetBackdropColor(scroll)
+    addon.UICore:SetBorderColor(scroll)
     scroll:SetSize(width, height - LABEL_HEIGHT - BUTTON_HEIGHT - PADDING * 3)
     scroll:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -PADDING)
     scroll:EnableMouse(true)
@@ -266,9 +259,9 @@ function MultiLineEditBox:Create(parent, width, height, labelText, text)
     scroll:SetScrollChild(editBox)
 
     local button = CreateFrame("Button", nil, frame, "BackdropTemplate")
-    button:SetBackdrop(BACKDROP)
-    button:SetBackdropColor(0, 0, 0, 0.5)
-    button:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+    button:SetBackdrop(addon.UICore:GetDefaultBackdrop())
+    addon.UICore:SetBackdropColor(button)
+    addon.UICore:SetBorderColor(button)
     button:SetSize(BUTTON_WIDTH, BUTTON_HEIGHT)
     button:SetPoint("TOPRIGHT", scroll, "BOTTOMRIGHT", 0, -PADDING)
     button:SetScript("OnClick", Button_OnClick)

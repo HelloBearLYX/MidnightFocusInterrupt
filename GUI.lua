@@ -3,7 +3,6 @@ local L = LibStub("AceLocale-3.0"):GetLocale(ADDON_NAME)
 
 ---@class HB_GUI
 ---@field frame Frame? the movable root frame which holds every part of the configuration UI
----@field panel Frame? the main panel which holds the title and the content
 ---@field content table? the scroll frame which holds the panel of the selected tab
 ---@field sidebar table? the window which holds the tab buttons
 ---@field selectedTab table? the entry of TABS which is currently shown
@@ -13,14 +12,13 @@ addon.GUI = {
     content = nil,
     sidebar = nil,
     isOpened = false,
+    currentTab = nil,
 }
 
 -- MARK: Default values
 local PANEL_WIDTH = 1000
 local PANEL_HEIGHT = 600
 local SIDEBAR_WIDTH = 155
-local PADDING = 16
-local TITLE_HEIGHT = 26
 local TOOLBAR_HEIGHT = 20
 local TOOLBAR_BUTTON_WIDTH = 155
 -- the toolbar window and the close button share this height, so they line up
@@ -30,38 +28,8 @@ local WIDGET_HEIGHT = 38
 local LABELLED_HEIGHT = 38
 local WIDGET_WIDTH = 220
 local CLOSE_BUTTON_SIZE = TOOLBAR_FRAME_HEIGHT
-
-local HEADER_COLOR = "|cFFFFFFFF"
-local SECTION_COLOR = "|cff8788ee"
-
+local HIGHLIGHT_TEXT_COLOR = "|c" .. addon.Utilities:RGBToHex(unpack(addon.UICore:GetHighlightColor()))
 local CLOSE_BUTTON_TEXTURE = "Interface\\AddOns\\MidnightFocusInterrupt\\GUI\\Assets\\Close_Button.png"
-
-local BACKDROP = {
-    bgFile = "Interface\\Buttons\\WHITE8x8",
-    edgeFile = "Interface\\Buttons\\WHITE8x8",
-    tile = false, tileSize = 1, edgeSize = 1,
-    insets = { left = 1, right = 1, top = 1, bottom = 1 }
-}
-
-local BORDER_BACKDROP = {
-    edgeFile = "Interface\\Buttons\\WHITE8x8",
-    edgeSize = 1,
-}
-
----Background and border as their own regions, a moved frame keeps them
-local function StyleFrame(frame, alpha)
-    local background = frame:CreateTexture(nil, "BACKGROUND")
-    background:SetAllPoints(frame)
-    background:SetColorTexture(0, 0, 0, alpha or 0.8)
-
-    local border = CreateFrame("Frame", nil, frame, "BackdropTemplate")
-    border:SetAllPoints(frame)
-    border:SetBackdrop(BORDER_BACKDROP)
-    border:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
-
-    frame.background = background
-    frame.border = border
-end
 
 -- MARK: General Panel
 
@@ -79,7 +47,7 @@ local CONTACTS = {
 ---Create a clickable link which opens the copy URL popup
 local function CreateLink(container, info)
     local link = addon.UICore:Build("TextRegion")
-    link:SetText("|cFF8080FF" .. info.text .. "|r")
+    link:SetText(HIGHLIGHT_TEXT_COLOR .. info.text .. "|r")
     link:SetRelativeWidth(0.3)
     link:SetOnClick(function() addon.Utilities:OpenURL(info.name, info.url) end)
     container:AddWidget(link)
@@ -128,11 +96,24 @@ local function RenderTabs(sidebar)
             local tabButton = addon.UICore:Build("TextButton")
             tabButton:SetSize(sidebar:GetWidth(), 22)
             tabButton:SetText(tabInfo.text)
-            tabButton:SetOnClick(function() addon.GUI:SelectTab(tabInfo) end)
+            tabButton:SetOnClick(function()
+                addon.GUI:SelectTab(tabInfo)
+                tabButton:SetColor(unpack(addon.UICore:GetHighlightColor()))
+                if addon.GUI.currentTab then
+                    addon.GUI.currentTab:SetColor() -- reset the previous tab color
+                end
+                addon.GUI.currentTab = tabButton
+            end)
             if tabInfo.tooltip then
                 addon.UICore:SetTooltip(tabButton, tabInfo.tooltip)
             end
             sidebar:AddWidget(tabButton)
+
+            -- if the tab is the general tab which is defaultly selected, set its color
+            if tabInfo.text == L["General"] then
+                tabButton:SetColor(unpack(addon.UICore:GetHighlightColor()))
+                addon.GUI.currentTab = tabButton
+            end
         else
             local separator = addon.UICore:Build("LineSeperator")
             separator:SetFullWidth(true)
@@ -140,7 +121,7 @@ local function RenderTabs(sidebar)
             sidebar:NewRow()
 
             local title = addon.UICore:Build("TextRegion")
-            title:SetText(HEADER_COLOR .. tabInfo.text .. "|r")
+            title:SetText(HIGHLIGHT_TEXT_COLOR .. tabInfo.text .. "|r")
             title:SetJustifyH("CENTER")
             title:SetFullWidth(true)
             sidebar:AddWidget(title)
@@ -190,25 +171,6 @@ local function AddDragHandle(frame, root)
     frame:SetScript("OnDragStop", function() root:StopMovingOrSizing() end)
 end
 
-local function CreatePanelFrame(root)
-    local frame = CreateFrame("Frame", nil, root)
-    frame:SetSize(PANEL_WIDTH, PANEL_HEIGHT)
-    frame:SetPoint("BOTTOMRIGHT", root, "BOTTOMRIGHT", 0, 0)
-
-    StyleFrame(frame, 0.8)
-
-    local title = frame:CreateFontString(nil, "OVERLAY")
-    title:SetFont("Fonts\\FRIZQT__.TTF", 18, "OUTLINE")
-    title:SetTextColor(1, 1, 1, 1)
-    title:SetText("|TInterface\\AddOns\\MidnightFocusInterrupt\\Media\\HBLyx.png:0|t " .. string.format(L["GUITitle"], addon:GetVersion()))
-    title:SetJustifyH("CENTER")
-    title:SetPoint("TOPLEFT", frame, "TOPLEFT", PADDING, -PADDING)
-    title:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -PADDING, -PADDING)
-    frame.title = title
-
-    return frame
-end
-
 ---Fill the toolbar window with the settings which are not owned by a module
 local function RenderToolbar(toolbar)
     local testButton = addon.UICore:Build("TextButton")
@@ -237,9 +199,6 @@ local function BuildGUI(self)
     local root = CreateRootFrame()
     self.frame = root
 
-    local frame = CreatePanelFrame(root)
-    self.panel = frame
-
     -- the toolbar sits above the main frame, like the tab window sits next to it
     local toolbar = addon.UICore:Build("Window")
     toolbar:SetParent(root)
@@ -251,6 +210,14 @@ local function BuildGUI(self)
     AddDragHandle(toolbar.frame, root)
     self.toolbar = toolbar
 
+    -- anchored above the toolbar instead of laid out as a row widget, so it never competes for row space
+    local title = toolbar.frame:CreateFontString(nil, "OVERLAY")
+    title:SetFont("Fonts\\FRIZQT__.TTF", 24, "OUTLINE")
+    title:SetTextColor(1, 1, 1, 1)
+    title:SetText(string.format(L["GUITitle"], HIGHLIGHT_TEXT_COLOR, addon:GetVersion()))
+    title:SetPoint("BOTTOM", toolbar.frame, "TOP", 0, 0)
+    self.title = title
+
     local close = CreateFrame("Button", nil, toolbar.frame, "BackdropTemplate")
     close:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8x8",
@@ -258,8 +225,8 @@ local function BuildGUI(self)
         tile = false, tileSize = 1, edgeSize = 1,
         insets = { left = 1, right = 1, top = 1, bottom = 1 }
     })
-    close:SetBackdropColor(0, 0, 0, 0.5)
-    close:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+    addon.UICore:SetBackdropColor(close)
+    addon.UICore:SetBorderColor(close)
     close:SetSize(CLOSE_BUTTON_SIZE, CLOSE_BUTTON_SIZE)
     close:SetPoint("TOPRIGHT", toolbar.frame, "TOPRIGHT", 0, 0)
     close:SetNormalTexture(CLOSE_BUTTON_TEXTURE)
@@ -271,13 +238,13 @@ local function BuildGUI(self)
     self.closeButton = close
 
     local content = addon.UICore:Build("ScrollFrame")
-    content:SetParent(frame)
-    content:SetSize(PANEL_WIDTH - PADDING * 2, PANEL_HEIGHT - PADDING * 2 - TITLE_HEIGHT)
-    content:SetPoint("TOPLEFT", frame, "TOPLEFT", PADDING, -(PADDING + TITLE_HEIGHT))
+    content:SetParent(root)
+    content:SetSize(PANEL_WIDTH, PANEL_HEIGHT)
+    content:SetPoint("BOTTOMRIGHT", root, "BOTTOMRIGHT", 0, 0)
     content:Show()
     self.content = content
 
-    local sidebar = addon.UICore:Build("Window")
+    local sidebar = addon.UICore:Build("ScrollFrame")
     sidebar:SetParent(root)
     sidebar:SetSize(SIDEBAR_WIDTH, PANEL_HEIGHT + TOOLBAR_FRAME_HEIGHT)
     sidebar:SetPoint("TOPLEFT", root, "TOPLEFT", 0, 0)
@@ -376,7 +343,7 @@ function addon.GUI:CreateHeader(parent, title)
 
     local header = addon.UICore:Build("TextRegion")
     header:SetFontSize(14)
-    header:SetText(SECTION_COLOR .. (title or "") .. "|r")
+    header:SetText(HIGHLIGHT_TEXT_COLOR .. (title or "") .. "|r")
     header:SetFullWidth(true)
 
     Attach(parent, header)

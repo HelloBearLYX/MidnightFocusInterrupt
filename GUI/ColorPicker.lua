@@ -19,15 +19,6 @@ local LABEL_HEIGHT = 14
 local CONTROL_HEIGHT = 20
 local SWATCH_INSET = 3
 local PADDING = 4
-local DISABLED_COLOR = { 0.5, 0.5, 0.5, 1 }
-local ENABLED_COLOR = { 1, 1, 1, 1 }
-
-local BACKDROP = {
-    bgFile = "Interface\\Buttons\\WHITE8x8",
-    edgeFile = "Interface\\Buttons\\WHITE8x8",
-    tile = false, tileSize = 1, edgeSize = 1,
-    insets = { left = 1, right = 1, top = 1, bottom = 1 }
-}
 
 -- MARK: Helpers
 
@@ -156,7 +147,7 @@ end
 
 function ColorPicker:SetDisabled(disabled)
     self.disabled = disabled and true or false
-    self.label:SetTextColor(unpack(self.disabled and DISABLED_COLOR or ENABLED_COLOR))
+    self.label:SetTextColor(unpack(self.disabled and addon.UICore:GetDisabledTextColor() or addon.UICore:GetNormalTextColor()))
 
     if self.disabled then
         self.button:Disable()
@@ -213,9 +204,9 @@ function ColorPicker:Create(parent, width, height, labelText, r, g, b, a)
     label:SetSize(width, LABEL_HEIGHT)
 
     local button = CreateFrame("Button", nil, frame, "BackdropTemplate")
-    button:SetBackdrop(BACKDROP)
-    button:SetBackdropColor(0, 0, 0, 0.5)
-    button:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+    button:SetBackdrop(addon.UICore:GetDefaultBackdrop())
+    addon.UICore:SetBackdropColor(button)
+    addon.UICore:SetBorderColor(button)
     button:SetSize(width, height - LABEL_HEIGHT - PADDING)
     button:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -PADDING)
     button:SetScript("OnClick", Button_OnClick)

@@ -32,13 +32,6 @@ local SCROLLBAR_THICKNESS = 10
 local SCROLLBAR_THUMB_HEIGHT = 24
 local SCROLL_STEP = 24
 
-local BACKDROP = {
-    bgFile = "Interface\\Buttons\\WHITE8x8",
-    edgeFile = "Interface\\Buttons\\WHITE8x8",
-    tile = false, tileSize = 1, edgeSize = 1,
-    insets = { left = 1, right = 1, top = 1, bottom = 1 }
-}
-
 -- MARK: Helpers
 
 ---Match the scroll bar range to the content that overflows the visible area
@@ -113,14 +106,9 @@ function ScrollFrame:Create(parent, width, height, title)
     frame.obj = widget
 
     -- background and border
-    frame:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        tile = false, tileSize = 1, edgeSize = 1,
-        insets = { left = 1, right = 1, top = 1, bottom = 1 }
-    })
-    frame:SetBackdropColor(0, 0, 0, 0.5)
-    frame:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+    frame:SetBackdrop(addon.UICore:GetDefaultBackdrop())
+    addon.UICore:SetBackdropColor(frame)
+    addon.UICore:SetBorderColor(frame)
     -- size and position
     frame:SetSize(width or DEFAULT_WIDTH, height or DEFAULT_HEIGHT)
     frame:SetPoint("TOPLEFT", parent or UIParent, "TOPLEFT", 0, 0)
@@ -138,9 +126,9 @@ function ScrollFrame:Create(parent, width, height, title)
 
     -- the scroll bar shares the look of the Slider widget
     local scrollBar = CreateFrame("Slider", nil, frame, "BackdropTemplate")
-    scrollBar:SetBackdrop(BACKDROP)
-    scrollBar:SetBackdropColor(0, 0, 0, 0.5)
-    scrollBar:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+    scrollBar:SetBackdrop(addon.UICore:GetDefaultBackdrop())
+    addon.UICore:SetBackdropColor(scrollBar)
+    addon.UICore:SetBorderColor(scrollBar)
     scrollBar:SetOrientation("VERTICAL")
     scrollBar:SetWidth(SCROLLBAR_THICKNESS)
     scrollBar:SetPoint("TOPLEFT", scrollHandler, "TOPRIGHT", CONTENT_INSET, 0)
