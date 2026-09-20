@@ -84,17 +84,7 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
             end
         end
     end)
-    GUI:CreateButton(frame, L["ResetMod"], function ()
-        addon.Utilities:SetPopupDialog(
-            ADDON_NAME .. "ResetMod",
-            "|cffC41E3A" .. L["FocusInterruptSettings"] .. "|r: " .. L["ComfirmResetMod"],
-            true,
-            {button1 = YES, button2 = NO, OnButton1 = function ()
-                addon.Utilities:ResetModule(MOD_KEY)
-                ReloadUI()
-            end}
-        )
-    end)
+    GUI:CreateResetModButton(frame, MOD_KEY, L["FocusInterruptSettings"])
 
     -- MARK: Core - Interrupt
     local interruptGroup = GUI:CreateInlineGroup(frame, L["InteruptSettings"])
@@ -110,19 +100,19 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
     GUI:CreateColorPicker(colorGroup, L["InterruptibleColor"], true, addon.db.FocusInterrupt.InterruptibleColor, function(value)
         addon.db.FocusInterrupt.InterruptibleColor = value
         update()
-    end):SetRelativeWidth(0.25)
+    end)
     GUI:CreateColorPicker(colorGroup, L["FocusInterruptNotReadyColor"], true, addon.db.FocusInterrupt.CooldownColor, function(value)
         addon.db.FocusInterrupt.CooldownColor = value
         update()
-    end):SetRelativeWidth(0.25)
+    end)
     GUI:CreateColorPicker(colorGroup, L["NotInterruptibleColor"], true, addon.db.FocusInterrupt.NotInterruptibleColor, function(value)
         addon.db.FocusInterrupt.NotInterruptibleColor = value
         update()
-    end):SetRelativeWidth(0.25)
+    end)
     GUI:CreateColorPicker(colorGroup, L["InterruptedColor"], true, addon.db.FocusInterrupt.InterruptedColor, function(value)
         addon.db.FocusInterrupt.InterruptedColor = value
         update()
-    end):SetRelativeWidth(0.25)
+    end)
     -- MARK: Core - Interrupted
     local interruptedGroup = GUI:CreateInlineGroup(frame, L["InterruptedSettings"])
     GUI:CreateInformationTag(interruptedGroup, L["InterruptedSettingsDesc"], "LEFT")
@@ -141,7 +131,7 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
         addon.db.FocusInterrupt.KickSpark = value
         update()
     end)
-    GUI:CreateInformationTag(kickSparkGroup, "\n", "LEFT")
+    GUI:CreateLinebreaker(kickSparkGroup)
     GUI:CreateColorPicker(kickSparkGroup, L["SparkColor"], true, addon.db.FocusInterrupt.SparkColor, function(value)
         addon.db.FocusInterrupt.SparkColor = value
         update()
@@ -159,7 +149,7 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
         addon.db.FocusInterrupt.TimeProportion = value
         update()
     end)
-    GUI:CreateInformationTag(textGroup, "\n")
+    GUI:CreateLinebreaker(textGroup)
     GUI:CreateToggleCheckBox(textGroup, L["ShowTarget"], addon.db.FocusInterrupt.ShowTarget, function(value)
         addon.db.FocusInterrupt.ShowTarget = value
         update()
@@ -214,7 +204,7 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
     iconYSlider:SetDisabled(not addon.db.FocusInterrupt.ShowKickIcons)
     growDropdown:SetDisabled(not addon.db.FocusInterrupt.ShowKickIcons)
     frame:AddWidget(demoWarlockOnlyCheckBox)
-    GUI:CreateInformationTag(interruptIconsGroup, "\n")
+    GUI:CreateLinebreaker(interruptIconsGroup)
     frame:AddWidget(iconSizeSlider)
     frame:AddWidget(iconXSlider)
     frame:AddWidget(iconYSlider)

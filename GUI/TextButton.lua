@@ -14,7 +14,7 @@ local TextButton = {
 
 -- MARK: Default values
 local DEFAULT_WIDTH = 200
-local DEFAULT_HEIGHT = 38
+local DEFAULT_HEIGHT = 40
 local ROW_HEIGHT = 20
 
 -- MARK: Script handlers

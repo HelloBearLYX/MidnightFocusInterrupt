@@ -12,7 +12,7 @@ local LineSeperator = {
 
 -- MARK: Default values
 local DEFAULT_WIDTH = 200
-local DEFAULT_HEIGHT = 9
+local DEFAULT_HEIGHT = 10
 local DEFAULT_THICKNESS = 1
 local DEFAULT_COLOR = { 1, 1, 1, 0.5 }
 

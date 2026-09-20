@@ -16,7 +16,7 @@ local Dropdown = {
 
 -- MARK: Default values
 local DEFAULT_WIDTH = 200
-local DEFAULT_HEIGHT = 38
+local DEFAULT_HEIGHT = 40
 local LABEL_HEIGHT = 14
 local CONTROL_HEIGHT = 20
 local ITEM_HEIGHT = 18

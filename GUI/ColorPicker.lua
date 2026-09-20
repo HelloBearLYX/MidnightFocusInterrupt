@@ -14,9 +14,8 @@ local ColorPicker = {
 
 -- MARK: Default values
 local DEFAULT_WIDTH = 200
-local DEFAULT_HEIGHT = 38
+local DEFAULT_HEIGHT = 40
 local LABEL_HEIGHT = 14
-local CONTROL_HEIGHT = 20
 local SWATCH_INSET = 3
 local PADDING = 4
 

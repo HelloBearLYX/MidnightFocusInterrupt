@@ -5,7 +5,6 @@ local addon = select(2, ...)
 ---@field frame Frame the main frame of the scroll frame
 ---@field scrollHandler ScrollFrame the scroll handler frame
 ---@field container Frame the scroll container frame that holds the content
----@field titleBar FontString the title bar of the scroll frame
 ---@field content table the content of the scroll frame
 ---@field contentX number the x position of the current content
 ---@field contentY number the y position of the current content
@@ -14,7 +13,6 @@ local ScrollFrame = {
     frame = nil,
     scrollHandler = nil,
     container = nil,
-    titleBar = nil,
     content = nil,
     contentX = 0,
     contentY = 0,
@@ -27,7 +25,6 @@ local DEFAULT_HEIGHT = 300
 local CONTENT_INSET = 6
 local SCROLLBAR_WIDTH = 24
 local ROW_SPACING = 8
-local TITLE_FONT_SIZE = 20
 local SCROLLBAR_THICKNESS = 10
 local SCROLLBAR_THUMB_HEIGHT = 24
 local SCROLL_STEP = 24
@@ -97,7 +94,7 @@ function ScrollFrame:Release()
 end
 
 -- MARK: Build
-function ScrollFrame:Create(parent, width, height, title)
+function ScrollFrame:Create(parent, width, height)
     local widget = setmetatable({}, { __index = ScrollFrame })
 
     -- create an new instance
@@ -146,12 +143,6 @@ function ScrollFrame:Create(parent, width, height, title)
     thumb:SetSize(SCROLLBAR_THICKNESS - 4, SCROLLBAR_THUMB_HEIGHT)
     scrollBar:SetThumbTexture(thumb)
 
-    -- title bar
-    local titleBar = frame:CreateFontString(nil, "OVERLAY")
-    titleBar:SetPoint("BOTTOM", frame, "TOP", 0, 0)
-    titleBar:SetFont(addon.UICore:GetDefaultFont(), TITLE_FONT_SIZE, "OUTLINE")
-    titleBar:SetText(title or "")
-
     -- content
     -- once the content is added into the container, the content tracks the widgets in the scroll frame
     -- then, the widgets can be released to the pool when the scroll frame is released
@@ -161,7 +152,6 @@ function ScrollFrame:Create(parent, width, height, title)
     widget.scrollHandler = scrollHandler
     widget.container = container
     widget.scrollBar = scrollBar
-    widget.titleBar = titleBar
     widget.content = content
     widget.contentX = 0
     widget.contentY = 0
@@ -195,10 +185,6 @@ end
 
 function ScrollFrame:Hide()
     self.frame:Hide()
-end
-
-function ScrollFrame:SetTitle(title)
-    self.titleBar:SetText(title or "")
 end
 
 function ScrollFrame:SetSize(width, height)
@@ -261,9 +247,8 @@ end
 
 ScrollFrame.DoLayout = ScrollFrame.Layout
 
-function ScrollFrame:Reuse(parent, width, height, title)
+function ScrollFrame:Reuse(parent, width, height)
     self.frame:SetParent(parent)
-    self.titleBar:SetText(title or "")
     self:SetSize(width, height)
     return self
 end

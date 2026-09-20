@@ -92,13 +92,12 @@ Because a re-render recycles the widget that may be running its own click handle
 
 ### ScrollFrame
 
-Scrollable container with a title above the frame and a scroll bar styled like the `Slider` widget. The bar hides itself when the content fits and the mouse wheel scrolls the content.
+Scrollable container with a scroll bar styled like the `Slider` widget. The bar hides itself when the content fits and the mouse wheel scrolls the content.
 
 ```lua
 local scrollFrame = addon.UICore:Build("ScrollFrame")
 scrollFrame:SetParent(panel)
 scrollFrame:SetSize(400, 300)
-scrollFrame:SetTitle("Settings")
 scrollFrame:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -40)
 scrollFrame:SetRenderer(Populate)
 scrollFrame:Rerender()

@@ -22,7 +22,7 @@ local BUTTON_SIZE = 16
 local PADDING = 4
 local OVERLAY_MARGIN = 4
 local DEFAULT_WIDTH = 200
-local DEFAULT_HEIGHT = 38
+local DEFAULT_HEIGHT = 40
 local ROW_HEIGHT = 20
 
 -- MARK: Script handlers
