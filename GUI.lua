@@ -3,16 +3,12 @@ local L = LibStub("AceLocale-3.0"):GetLocale(ADDON_NAME)
 
 ---@class HB_GUI
 ---@field frame Frame? the movable root frame which holds every part of the configuration UI
----@field content table? the scroll frame which holds the panel of the selected tab
----@field sidebar table? the window which holds the tab buttons
----@field selectedTab table? the entry of TABS which is currently shown
+---@field tabGroup table? the sidebar and content area which show the selected tab's panel
 ---@field isOpened boolean is the GUI opened
 addon.GUI = {
     frame = nil,
-    content = nil,
-    sidebar = nil,
+    tabGroup = nil,
     isOpened = false,
-    currentTab = nil,
 }
 
 -- MARK: Default values
@@ -44,14 +40,9 @@ local CONTACTS = {
     { text = "|TInterface\\AddOns\\MidnightFocusInterrupt\\Media\\CurseForge.png:0|t CurseForge", name = "CurseForge", url = "https://www.curseforge.com/wow/addons/midnightfocusinterrupt/comments" },
 }
 
----Create a clickable link which opens the copy URL popup
+---Create a labelled, read-only edit box so the URL can be selected and copied
 local function CreateLink(container, info)
-    local link = addon.UICore:Build("TextRegion")
-    link:SetText(HIGHLIGHT_TEXT_COLOR .. info.text .. "|r")
-    link:SetRelativeWidth(0.3)
-    link:SetOnClick(function() addon.Utilities:OpenURL(info.name, info.url) end)
-    container:AddWidget(link)
-    return link
+    return addon.GUI:CreateEditBox(container, info.text, info.url, function() end):SetRelativeWidth(0.3)
 end
 
 local function CreateGeneralPanel(container)
@@ -69,7 +60,8 @@ local function CreateGeneralPanel(container)
 
     addon.GUI:CreateInlineGroup(container, L["ChangeLog"])
     addon.GUI:CreateInformationTag(container, L["ChangeLogContent"], "LEFT")
-    addon.GUI:CreateEditBox(container, "", L["ChangeLogLink"], function() end):SetFullWidth(true)
+    addon.GUI:CreateEditBox(container, "", L["ChangeLogLink"], function() end):SetRelativeWidth(0.3)
+    container:NewRow()
 
     addon.GUI:CreateInlineGroup(container, L["Contact"])
     for _, info in ipairs(CONTACTS) do
@@ -89,59 +81,19 @@ local TABS = {
 
 -- MARK: Tabs
 
----Fill the sidebar with the tab buttons and the section titles
-local function RenderTabs(sidebar)
-    for _, tabInfo in ipairs(TABS) do
-        if tabInfo.type == "Button" then
-            local tabButton = addon.UICore:Build("TextButton")
-            tabButton:SetSize(sidebar:GetWidth(), 22)
-            tabButton:SetText(tabInfo.text)
-            tabButton:SetOnClick(function()
-                addon.GUI:SelectTab(tabInfo)
-                tabButton:SetColor(unpack(addon.UICore:GetHighlightColor()))
-                if addon.GUI.currentTab then
-                    addon.GUI.currentTab:SetColor() -- reset the previous tab color
-                end
-                addon.GUI.currentTab = tabButton
-            end)
-            if tabInfo.tooltip then
-                addon.UICore:SetTooltip(tabButton, tabInfo.tooltip)
-            end
-            sidebar:AddWidget(tabButton)
-
-            -- if the tab is the general tab which is defaultly selected, set its color
-            if tabInfo.text == L["General"] then
-                tabButton:SetColor(unpack(addon.UICore:GetHighlightColor()))
-                addon.GUI.currentTab = tabButton
-            end
-        else
-            local separator = addon.UICore:Build("LineSeperator")
-            separator:SetFullWidth(true)
-            sidebar:AddWidget(separator)
-            sidebar:NewRow()
-
-            local title = addon.UICore:Build("TextRegion")
-            title:SetText(HIGHLIGHT_TEXT_COLOR .. tabInfo.text .. "|r")
-            title:SetJustifyH("CENTER")
-            title:SetFullWidth(true)
-            sidebar:AddWidget(title)
-        end
-
-        sidebar:NewRow()
+---Find the index of a TABS entry, used to select it in the tab group
+local function GetTabIndex(tabInfo)
+    for i, info in ipairs(TABS) do
+        if info == tabInfo then return i end
     end
 end
 
----Show the panel of a tab in the content scroll frame
+---Show the panel of a tab in the content area
 ---@param tabInfo table an entry of TABS
 function addon.GUI:SelectTab(tabInfo)
     if not tabInfo.panelFunction then return end
 
-    self.selectedTab = tabInfo
-    self.content:SetRenderer(function(container)
-        tabInfo.panelFunction(container)
-        container:DoLayout()
-    end)
-    self.content:Rerender()
+    self.tabGroup:SelectTab(GetTabIndex(tabInfo))
 end
 
 -- MARK: Initialize GUI
@@ -237,22 +189,17 @@ local function BuildGUI(self)
     addon.UICore:BuildHover(close)
     self.closeButton = close
 
-    local content = addon.UICore:Build("ScrollFrame")
-    content:SetParent(root)
-    content:SetSize(PANEL_WIDTH, PANEL_HEIGHT)
-    content:SetPoint("BOTTOMRIGHT", root, "BOTTOMRIGHT", 0, 0)
-    content:Show()
-    self.content = content
-
-    local sidebar = addon.UICore:Build("ScrollFrame")
-    sidebar:SetParent(root)
-    sidebar:SetSize(SIDEBAR_WIDTH, PANEL_HEIGHT + TOOLBAR_FRAME_HEIGHT)
-    sidebar:SetPoint("TOPLEFT", root, "TOPLEFT", 0, 0)
-    sidebar:SetRenderer(RenderTabs)
-    sidebar:Rerender()
-    sidebar:Show()
-    AddDragHandle(sidebar.frame, root)
-    self.sidebar = sidebar
+    -- the sidebar spans the full height, the content area sits below the toolbar
+    local tabGroup = addon.UICore:Build("VerticalTabGroup")
+    tabGroup:SetParent(root)
+    tabGroup:SetSidebarWidth(SIDEBAR_WIDTH)
+    tabGroup:SetContentTopInset(TOOLBAR_FRAME_HEIGHT)
+    tabGroup:SetSize(SIDEBAR_WIDTH + PANEL_WIDTH, PANEL_HEIGHT + TOOLBAR_FRAME_HEIGHT)
+    tabGroup:SetPoint("TOPLEFT", root, "TOPLEFT", 0, 0)
+    tabGroup:SetTabs(TABS)
+    tabGroup:Show()
+    AddDragHandle(tabGroup.sidebar.frame, root)
+    self.tabGroup = tabGroup
 end
 
 ---Initialize/Constructor for GUI
@@ -271,7 +218,6 @@ function addon.GUI:Render()
 
     self.isOpened = true
     self.frame:Show()
-    self:SelectTab(self.selectedTab or TABS[1])
 end
 
 -- MARK: Open/Close GUI

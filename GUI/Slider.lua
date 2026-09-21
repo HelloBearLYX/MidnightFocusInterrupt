@@ -1,11 +1,15 @@
 local addon = select(2, ...)
 
----@class Slider
+---@class SliderWidget
 ---@field type string widget type
 ---@field frame Frame the container frame of the slider
 ---@field label FontString the label above the slider bar
 ---@field slider Slider the slider bar
 ---@field editBox EditBox the value box on the right of the slider bar
+---@field lowText FontString the label showing the minimum value
+---@field highText FontString the label showing the maximum value
+---@field thumb Texture the draggable handle of the slider bar
+---@field fill Texture the line showing the value's proportion between min and max
 local Slider = {
     type = "Slider",
     frame = nil,
@@ -44,6 +48,15 @@ local function FormatValue(widget, value)
     return string.format("%d", value)
 end
 
+---Resize the fill line to match how far the value sits between min and max
+local function UpdateFill(widget)
+    local range = widget.max - widget.min
+    if range <= 0 then range = 1 end
+    local pct = (widget.value - widget.min) / range
+    local trackWidth = widget.slider:GetWidth() - 4
+    widget.fill:SetWidth(math.max(1, pct * trackWidth))
+end
+
 ---Push the value into the widgets without firing the callback again
 local function RefreshDisplay(widget)
     widget.settingValue = true
@@ -51,6 +64,7 @@ local function RefreshDisplay(widget)
     widget.editBox:SetText(FormatValue(widget, widget.value))
     widget.editBox:SetCursorPosition(0)
     widget.settingValue = false
+    UpdateFill(widget)
 end
 
 -- MARK: Script handlers
@@ -134,6 +148,7 @@ function Slider:SetSize(width, height)
     self.label:SetSize(width, LABEL_HEIGHT)
     self.slider:SetSize(width - EDITBOX_WIDTH - PADDING, height - LABEL_HEIGHT - PADDING)
     self.editBox:SetSize(EDITBOX_WIDTH, CONTROL_HEIGHT)
+    UpdateFill(self)
 end
 
 function Slider:GetWidth()
@@ -157,9 +172,9 @@ function Slider:Hide()
     self.frame:Hide()
 end
 
----@param min number the lower bound
----@param max number the upper bound
----@param step number the granularity of the slider
+---@param min number? the lower bound
+---@param max number? the upper bound
+---@param step number? the granularity of the slider
 function Slider:SetMinMaxValues(min, max, step)
     self.min = min or 0
     self.max = max or 100
@@ -192,11 +207,13 @@ function Slider:SetDisabled(disabled)
         self.editBox:ClearFocus()
         self.label:SetTextColor(unpack(addon.UICore:GetDisabledTextColor()))
         self.thumb:SetVertexColor(unpack(addon.UICore:GetDisabledTextColor()))
+        self.fill:SetVertexColor(unpack(addon.UICore:GetDisabledTextColor()))
     else
         self.slider:Enable()
         self.editBox:EnableMouse(true)
         self.label:SetTextColor(unpack(addon.UICore:GetNormalTextColor()))
         self.thumb:SetVertexColor(unpack(addon.UICore:GetNormalTextColor()))
+        self.fill:SetVertexColor(unpack(addon.UICore:GetNormalTextColor()))
     end
 end
 
@@ -264,6 +281,13 @@ function Slider:Create(parent, width, height, labelText, min, max, step, value)
     thumb:SetSize(8, CONTROL_HEIGHT - 4)
     slider:SetThumbTexture(thumb)
 
+    -- the fill is a thin line showing the proportion of the value between min and max
+    local fill = slider:CreateTexture(nil, "ARTWORK")
+    fill:SetColorTexture(unpack(addon.UICore:GetHighlightColor()))
+    fill:SetHeight(4)
+    fill:SetPoint("LEFT", slider, "LEFT", 2, 0)
+    fill:SetWidth(1)
+
     local lowText = slider:CreateFontString(nil, "ARTWORK")
     lowText:SetFont(addon.UICore:GetDefaultFont(), 10, "OUTLINE")
     lowText:SetPoint("TOPLEFT", slider, "BOTTOMLEFT", 0, 0)
@@ -296,6 +320,7 @@ function Slider:Create(parent, width, height, labelText, min, max, step, value)
     widget.label = label
     widget.slider = slider
     widget.thumb = thumb
+    widget.fill = fill
     widget.lowText = lowText
     widget.highText = highText
     widget.editBox = editBox

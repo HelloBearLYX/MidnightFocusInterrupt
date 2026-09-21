@@ -2,17 +2,19 @@ local ADDON_NAME, addon = ...
 local L = LibStub("AceLocale-3.0"):NewLocale(ADDON_NAME, "zhCN")
 if not L then return end
 
-L["Welecome"] = "|cff8788ee" .. ADDON_NAME .. "|r: 欢迎! 你的配置已经被重置, 你可以在: ESC-选项-插件-|cff8788ee" .. ADDON_NAME .. "|r里更改设置"
+L["Welecome"] = "|cff8788ee" .. ADDON_NAME .. "|r: 欢迎! 你的配置已经被初始化, 你可以使用 \"|cff8788ee/mfi|r\" 命令来更改设置"
 L["WelecomeInfo"] = "欢迎! 感谢你使用|cff8788ee" .. ADDON_NAME .. "|r!"
-L["WelecomeSetting"] = "你可以使用 \"|cff8788ee/mfi|r\" 命令或在 ESC-选项-插件-|cff8788ee" .. ADDON_NAME .. "|r 中打开配置面板来更改设置"
+L["WelecomeSetting"] = "你可以使用 \"|cff8788ee/mfi|r\" 命令打开配置面板来更改设置"
 L["GUITitle"] = "%s" .. ADDON_NAME .. "|r v%s 配置面板"
 L["Notifications"] = "通知"
-L["NotificationContent"] = "选项界面中的标签页显示了本插件包含的模块, 你可以分别配置每个模块" .. "\n\n" ..
-"你可以在|cff8788eeHBLyx|r的CurseForge页面里找到:" .. "\n" ..
-"|cff8788eeHBLyx_Tools|r: 一个包含战斗指示器, 战斗计时器, 焦点打断以及更多模块的集合" .. "\n" ..
-"|cff8788eeMidnightFocusInterrupt|r: 焦点打断模块的独立版本" .. "\n" ..
-"|cff8788eeHBLyx_Encounter_Sound|r: BOSS战音效模块的独立版本" .. "\n" ..
-"|cff8788eeSharedMedia_HBLyx|r: 一个AI生成的中文语音素材包(LibSharedMedia)"
+L["NotificationContent"] =
+	"配置面板的GUI已经从零开始完全重建, 并且独立于AceGUI\n" ..
+	"希望你喜欢新的UI体验!\n\n" ..
+	"选项界面中的标签页显示了本插件包含的模块, 你可以分别配置每个模块" .. "\n\n" ..
+	"你可以在|cff8788eeHBLyx|r的页面里找到:" .. "\n" ..
+	"|cff8788eeHBLyx_Tools|r: 一个包含战斗指示器, 战斗计时器, 焦点打断以及更多模块的集合" .. "\n" ..
+	"|cff8788eeMidnightFocusInterrupt|r: 焦点打断模块的独立版本" .. "\n" ..
+	"|cff8788eeSharedMedia_HBLyx|r: 一个AI生成的中文语音素材包(LibSharedMedia)"
 
 -- MARK： Downloads/Update
 L["Downloads/Update"] = "下载/更新"
@@ -68,7 +70,7 @@ L["General"] = "综合"
 L["Profile"] = "配置文件"
 L["Export"] = "导出"
 L["Import"] = "导入"
-L["ProfileSettingsDesc"] = "使用下面的字符串导出和导入你的配置文件\n\n导出的字符串是和|cff8788eeHBLyx_Tools|r兼容的,如果你想把同样的设置应用到|cff8788eeHBLyx_Tools|r里的模块,你可以在|cff8788eeHBLyx_Tools|r的模块配置部分导入这个字符串"
+L["ProfileSettingsDesc"] = "使用下面的字符串导出和导入你的配置文件\n导出的字符串是和|cff8788eeHBLyx_Tools|r兼容的,如果你想把同样的设置应用到|cff8788eeHBLyx_Tools|r里的模块,你可以在|cff8788eeHBLyx_Tools|r的模块配置部分导入这个字符串"
 L["ImportSuccess"] = "配置文件导入成功,请重载界面以应用更改"
 L["LeftButton"] = "左键"
 L["RightButton"] = "右键"
@@ -105,14 +107,14 @@ L["InteruptSettings"] = "打断设置"
 L["FocusInterruptCooldownFilter"] = "打断技能未就绪时隐藏"
 L["FocusInterruptNotReadyColor"] = "打断未就绪颜色"
 L["FocusInterruptibleFilter"] = "不可打断时隐藏"
-L["FocusMuteDesc"] = "基于暴雪的限制(02/06/2026), 打断音效任然会任意施法时播放\n\n建议不使用音效(本模块包含多种视觉上的焦点施法过滤)"
+L["FocusMuteDesc"] = "基于暴雪的限制(02/06/2026), 打断音效任然会任意施法时播放\n建议不使用音效(本模块包含多种视觉上的焦点施法过滤)"
 L["InterruptedFadeTime"] = "被打断淡出时间"
 L["ShowInterrupter"] = "显示打断者"
 L["ShowTarget"] = "显示目标"
 L["InterruptedSettings"] = "被打断设置"
-L["InterruptedSettingsDesc"] = "当焦点被打断时, 施法条会有一个短暂的淡出时间, 你可以将淡出时间设置为0来让它立即消失.\n\n同时, 在淡出时间内会显示一些信息"
+L["InterruptedSettingsDesc"] = "当焦点被打断时, 施法条会有一个短暂的淡出时间, 你可以将淡出时间设置为0来让它立即消失\n同时, 在淡出时间内会显示一些信息"
 L["InterruptIconsSettings"] = "打断图标设置"
-L["InterruptIconDesc"] = "在可以打断的时候(可打断+打断就绪)的情况下,显示打断图标\n\n主要为多个打断的职业显示哪个打断技能是可用的"
+L["InterruptIconDesc"] = "在可以打断的时候(可打断+打断就绪)的情况下,显示打断图标\n主要为多个打断的职业显示哪个打断技能是可用的"
 L["ShowDemoWarlockOnly"] = "仅>1个打断时显示"
 L["TextProportionDesc"] = "施法条中文本可以占用的比例, 字符串的长度不会超过空间限制\n0比例表示文本没有长度限制\n"
 L["SpellProportion"] = "法术比例"

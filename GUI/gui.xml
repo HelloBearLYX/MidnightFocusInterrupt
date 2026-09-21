@@ -13,4 +13,5 @@
   <Script file="TextRegion.lua"/>
   <Script file="LineSeperator.lua"/>
   <Script file="Window.lua"/>
+  <Script file="VerticalTabGroup.lua"/>
 </Ui>

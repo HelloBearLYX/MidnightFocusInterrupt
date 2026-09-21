@@ -1,17 +1,19 @@
 local ADDON_NAME, addon = ...
 local L = LibStub("AceLocale-3.0"):NewLocale(ADDON_NAME, "enUS", true)
 
-L["Welecome"] = "|cff8788ee" .. ADDON_NAME .. "|r: Welcome! Your profile has been reset, and you can set up in: ESC-Options-AddOns-|cff8788ee" .. ADDON_NAME .. "|r"
+L["Welecome"] = "|cff8788ee" .. ADDON_NAME .. "|r: Welcome! Your profile has been initialized, and you can set up with: /mfi"
 L["WelecomeInfo"] = "Welecome! Thank you for using |cff8788ee" .. ADDON_NAME .. "|r!"
-L["WelecomeSetting"] = "You can change settings with \"|cff8788ee/mfi|r\" or open configuration panel in ESC-Options-AddOns-|cff8788ee" .. ADDON_NAME .. "|r"
+L["WelecomeSetting"] = "You can change settings with \"|cff8788ee/mfi|r\""
 L["GUITitle"] = "%s" .. ADDON_NAME .. "|r v%s Configurations Panel"
 L["Notifications"] = "Notifications"
-L["NotificationContent"] = "The tabs shows modules contained in this addon, you can configure each module separately." .. "\n\n" .. 
-"You can find on |cff8788eeHBLyx|r's CurseForge page:" .. "\n" ..
-"|cff8788eeHBLyx_Tools|r: a collection of modules including Combat Indicator, Combat Timer, Focus Interrupt and more modules" .. "\n" ..
-"|cff8788eeMidnightFocusInterrupt|r: Focus Interrupt module standalone version" .. "\n" ..
-"|cff8788eeHBLyx_Encounter_Sound|r: Encounter Sound module standalone version" .. "\n" ..
-"|cff8788eeSharedMedia_HBLyx|r: an AI-generated Chinese sound pack(LibSharedMedia)"
+L["NotificationContent"] =
+	"The GUI of Configurations panel is totally re-built from scratch and independent from AceGUI\n" ..
+	"Hope you enjoy the new UI experience!\n\n" ..
+	"The tabs shows modules contained in this addon, you can configure each module separately." .. "\n\n" ..
+	"You can find on |cff8788eeHBLyx|r's page:" .. "\n" ..
+	"|cff8788eeHBLyx_Tools|r: a collection of modules including Combat Indicator, Combat Timer, Focus Interrupt and more modules" .. "\n" ..
+	"|cff8788eeMidnightFocusInterrupt|r: Focus Interrupt module standalone version" .. "\n" ..
+	"|cff8788eeSharedMedia_HBLyx|r: an AI-generated Chinese sound pack(LibSharedMedia)"
 
 -- MARK： Downloads/Update
 L["Downloads/Update"] = "Downloads/Update"
@@ -65,7 +67,7 @@ L["General"] = "General"
 L["Profile"] = "Profile"
 L["Export"] = "Export"
 L["Import"] = "Import"
-L["ProfileSettingsDesc"] = "Export and Import your profile with the string below.\n\nExported string is compatible with |cff8788eeHBLyx_Tools|r, and you can import it in the module profile section if you want to apply the same settings to the module in |cff8788eeHBLyx_Tools|r"
+L["ProfileSettingsDesc"] = "Export and Import your profile with the string below.\nExported string is compatible with |cff8788eeHBLyx_Tools|r, and you can import it in the module profile section if you want to apply the same settings to the module in |cff8788eeHBLyx_Tools|r"
 L["ImportSuccess"] = "Profile imported successfully. Please reload your UI to apply the changes."
 L["LeftButton"] = "Left Click"
 L["RightButton"] = "Right Click"
@@ -102,14 +104,14 @@ L["InteruptSettings"] = "Focus Interupt Settings"
 L["FocusInterruptCooldownFilter"] = "Hide if Kick NOT Ready"
 L["FocusInterruptNotReadyColor"] = "Kick Not Ready Color"
 L["FocusInterruptibleFilter"] = "Hide if Non-Interruptible"
-L["FocusMuteDesc"] = "Due to Blizzard's restrictions(02/06/2026), the sound alert will still play no matter how cast is\n\nRecommend keep sound alert off(this module contains multiple version of visual display to identify focus casting and interrupt information)"
+L["FocusMuteDesc"] = "Due to Blizzard's restrictions(02/06/2026), the sound alert will still play no matter how cast is\nRecommend keep sound alert off(this module contains multiple version of visual display to identify focus casting and interrupt information)"
 L["InterruptedFadeTime"] = "Interrpted Fade Time"
 L["ShowInterrupter"] = "Show Interrupter"
 L["ShowTarget"] = "Show Target"
 L["InterruptedSettings"] = "Interrupted Settings"
-L["InterruptedSettingsDesc"] = "When the focus is interrupted, there is a short fade time for the cast bar, you can make the fade time zero to make it disappear immediately.\n\nAlso, there is information showing during the fade time"
+L["InterruptedSettingsDesc"] = "When the focus is interrupted, there is a short fade time for the cast bar, you can make the fade time zero to make it disappear immediately\nAlso, there is information showing during the fade time"
 L["InterruptIconsSettings"] = "Interrupt Icon Settings"
-L["InterruptIconDesc"] = "When the player is capable of interrupt(interruptible + interrupt ready), display an icon of interrupt\n\nMainly for multiple interrupts classes to show which interrupt is available"
+L["InterruptIconDesc"] = "When the player is capable of interrupt(interruptible + interrupt ready), display an icon of interrupt\nMainly for multiple interrupts classes to show which interrupt is available"
 L["ShowDemoWarlockOnly"] = "Only Show >1 Kicks"
 L["TextProportionDesc"] = "How much proportion of the cast bar the text can take, the length of the string will not exceed the space limits\n0 proportion means no length limit to the text\n"
 L["SpellProportion"] = "Spell Proportion"
