@@ -164,7 +164,7 @@ local function BuildGUI(self)
 
     -- anchored above the toolbar instead of laid out as a row widget, so it never competes for row space
     local title = toolbar.frame:CreateFontString(nil, "OVERLAY")
-    title:SetFont("Fonts\\FRIZQT__.TTF", 24, "OUTLINE")
+    title:SetFont(addon.DEFAULTS.font, 24, "OUTLINE")
     title:SetTextColor(1, 1, 1, 1)
     title:SetText(string.format(L["GUITitle"], HIGHLIGHT_TEXT_COLOR, addon:GetVersion()))
     title:SetPoint("BOTTOM", toolbar.frame, "TOP", 0, 0)

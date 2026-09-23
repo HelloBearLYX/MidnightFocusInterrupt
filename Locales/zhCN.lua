@@ -5,7 +5,7 @@ if not L then return end
 L["Welecome"] = "|cff8788ee" .. ADDON_NAME .. "|r: 欢迎! 你的配置已经被初始化, 你可以使用 \"|cff8788ee/mfi|r\" 命令来更改设置"
 L["WelecomeInfo"] = "欢迎! 感谢你使用|cff8788ee" .. ADDON_NAME .. "|r!"
 L["WelecomeSetting"] = "你可以使用 \"|cff8788ee/mfi|r\" 命令打开配置面板来更改设置"
-L["GUITitle"] = "%s" .. ADDON_NAME .. "|r v%s 配置面板"
+L["GUITitle"] = "%s" .. ADDON_NAME .. "|r v%s"
 L["Notifications"] = "通知"
 L["NotificationContent"] =
 	"配置面板的GUI已经从零开始完全重建, 并且独立于AceGUI\n" ..
@@ -49,7 +49,7 @@ L["SoundChannel"] = {
 
 -- MARK: Config
 L["ConfigPanel"] = "打开配置面板"
-L["Test"] = "测试/解锁(拖动移动)"
+L["Test"] = "测试/解锁"
 L["Mute"] = "静音"
 L["Enable"] = "启用"
 L["SoundSettings"] = "声音设置"
