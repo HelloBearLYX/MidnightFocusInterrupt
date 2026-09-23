@@ -195,7 +195,7 @@ box:SetOnEnterPressed(function(widget, text) addon:ImportProfile(text) end)
 
 ### ColorPicker
 
-Label on top, a color swatch below. Clicking the swatch opens the game color picker, with alpha when `SetHasAlpha(true)` is set. The hex helpers match how colors are stored in the database.
+A small bordered color swatch on the left with the label beside it, matching the layout of `ToggleBox`. Clicking the swatch opens the game color picker, with alpha when `SetHasAlpha(true)` is set. The hex helpers match how colors are stored in the database.
 
 ```lua
 local color = addon.UICore:Build("ColorPicker")

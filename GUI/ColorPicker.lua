@@ -2,22 +2,33 @@ local addon = select(2, ...)
 
 ---@class ColorPicker
 ---@field type string widget type
----@field frame Frame the container frame of the color picker
----@field label FontString the label above the swatch
----@field button Button the swatch button which opens the game color picker
+---@field frame Frame the container frame, sized like every other widget
+---@field button Button the clickable row, vertically centered inside the container
+---@field swatchBox Frame the bordered box on the left which previews the color and opens the picker
+---@field swatch Texture the color preview inside the swatch box
+---@field label FontString the label to the right of the swatch box
 local ColorPicker = {
     type = "ColorPicker",
     frame = nil,
-    label = nil,
     button = nil,
+    swatchBox = nil,
+    swatch = nil,
+    label = nil,
 }
 
 -- MARK: Default values
+local SWATCH_WIDTH = 32
+local SWATCH_HEIGHT = 16
+local SWATCH_INSET = 1
+local PADDING = 4
 local DEFAULT_WIDTH = 200
 local DEFAULT_HEIGHT = 40
-local LABEL_HEIGHT = 14
-local SWATCH_INSET = 3
-local PADDING = 4
+local ROW_HEIGHT = 20
+
+local function GetLabelSize(width)
+    -- the swatch box is a fixed size on the left, the label takes the rest of the row
+    return width - SWATCH_WIDTH - PADDING, ROW_HEIGHT
+end
 
 -- MARK: Helpers
 
@@ -52,6 +63,7 @@ end
 
 -- MARK: Script handlers
 local function Button_OnClick(frame)
+    if frame.obj.disabled then return end
     PlaySound(852) -- SOUNDKIT.IG_MAINMENU_OPTION
     OpenPicker(frame.obj)
 end
@@ -96,8 +108,8 @@ function ColorPicker:SetSize(width, height)
     height = height or DEFAULT_HEIGHT
 
     self.frame:SetSize(width, height)
-    self.label:SetSize(width, LABEL_HEIGHT)
-    self.button:SetSize(width, height - LABEL_HEIGHT - PADDING)
+    self.button:SetSize(width, ROW_HEIGHT)
+    self.label:SetSize(GetLabelSize(width))
 end
 
 function ColorPicker:GetWidth()
@@ -128,7 +140,7 @@ end
 function ColorPicker:SetColor(r, g, b, a)
     self.r, self.g, self.b = r or 1, g or 1, b or 1
     self.a = a or 1
-    self.swatch:SetColorTexture(self.r, self.g, self.b, self.a)
+    self.swatch:SetColorTexture(self.r, self.g, self.b, self.hasAlpha and self.a or 1)
 end
 
 function ColorPicker:GetColor()
@@ -147,6 +159,8 @@ end
 function ColorPicker:SetDisabled(disabled)
     self.disabled = disabled and true or false
     self.label:SetTextColor(unpack(self.disabled and addon.UICore:GetDisabledTextColor() or addon.UICore:GetNormalTextColor()))
+    self.swatch:SetAlpha(self.disabled and 0.45 or 1)
+    addon.UICore:SetBorderColor(self.swatchBox, self.disabled and addon.UICore:GetDisabledTextColor() or nil)
 
     if self.disabled then
         self.button:Disable()
@@ -194,35 +208,45 @@ function ColorPicker:Create(parent, width, height, labelText, r, g, b, a)
     frame:SetPoint("TOPLEFT", parent or UIParent, "TOPLEFT", 0, 0)
     frame.obj = widget
 
-    local label = frame:CreateFontString(nil, "OVERLAY")
-    label:SetFont(addon.UICore:GetDefaultFont(), 12, "OUTLINE")
-    label:SetTextColor(1, 1, 1, 1)
-    label:SetText(labelText or "")
-    label:SetJustifyH("LEFT")
-    label:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
-    label:SetSize(width, LABEL_HEIGHT)
+    local button = CreateFrame("Button", nil, frame)
+    button.obj = widget
 
-    local button = CreateFrame("Button", nil, frame, "BackdropTemplate")
-    button:SetBackdrop(addon.UICore:GetDefaultBackdrop())
-    addon.UICore:SetBackdropColor(button)
-    addon.UICore:SetBorderColor(button)
-    button:SetSize(width, height - LABEL_HEIGHT - PADDING)
-    button:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -PADDING)
+    -- behavior
+    button:EnableMouse(true)
     button:SetScript("OnClick", Button_OnClick)
     button:SetScript("OnEnter", Control_OnEnter)
     button:SetScript("OnLeave", Control_OnLeave)
-    button.obj = widget
+    -- size and position
+    button:SetSize(width, ROW_HEIGHT)
+    button:SetPoint("LEFT", frame, "LEFT", 0, 0)
 
-    addon.UICore:BuildHover(button)
+    -- the swatch box is the fixed color preview button, centered on the row
+    local swatchBox = CreateFrame("Frame", nil, button, "BackdropTemplate")
+    swatchBox:SetBackdrop(addon.UICore:GetDefaultBackdrop())
+    addon.UICore:SetBackdropColor(swatchBox)
+    addon.UICore:SetBorderColor(swatchBox)
+    swatchBox:SetSize(SWATCH_WIDTH, SWATCH_HEIGHT)
+    swatchBox:SetPoint("LEFT", button, "LEFT", 0, 0)
 
-    local swatch = button:CreateTexture(nil, "ARTWORK")
-    swatch:SetPoint("TOPLEFT", button, "TOPLEFT", SWATCH_INSET, -SWATCH_INSET)
-    swatch:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -SWATCH_INSET, SWATCH_INSET)
+    addon.UICore:BuildHover(swatchBox)
+
+    local swatch = swatchBox:CreateTexture(nil, "ARTWORK")
+    swatch:SetPoint("TOPLEFT", swatchBox, "TOPLEFT", SWATCH_INSET, -SWATCH_INSET)
+    swatch:SetPoint("BOTTOMRIGHT", swatchBox, "BOTTOMRIGHT", -SWATCH_INSET, SWATCH_INSET)
+
+    local label = button:CreateFontString(nil, "OVERLAY")
+    label:SetFont(addon.UICore:GetDefaultFont(), 12, "OUTLINE")
+    label:SetTextColor(1, 1, 1, 1)
+    label:SetText(labelText or "")
+    label:SetPoint("LEFT", swatchBox, "RIGHT", PADDING, 0)
+    label:SetJustifyH("LEFT")
+    label:SetSize(GetLabelSize(width))
 
     widget.frame = frame
-    widget.label = label
     widget.button = button
+    widget.swatchBox = swatchBox
     widget.swatch = swatch
+    widget.label = label
     widget.type = ColorPicker.type
 
     widget:SetColor(r, g, b, a)
