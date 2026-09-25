@@ -17,7 +17,6 @@ local FocusInterrupt = {
     frame = CreateFrame("Frame", ADDON_NAME .. "_FocusInterrupt", UIParent),
     bars = {},
     kickIcon = nil,
-    subKickIcon = nil,
     warlockEventFrame = nil,
     lastPet = nil, -- for Demo Warlock, to record the last interrupt used, as the interruptID is switched by pet summoned
 }
@@ -48,6 +47,34 @@ local FOCUS_MACRO_NAME = "HBT_SetFocus"
 local FOCUS_MACRO_ICON = "ability_hunter_mastermarksman"
 local FOCUS_MACRO_BODY = "/clearfocus\n/focus [@mouseover,exists][]\n/tm [@mouseover,exists][] %d"
 
+-- MARK: Create KickIcon
+
+---Create a single icon(border + texture) frame parented to the kick icon container
+local function CreateKickIconTexture(container)
+    local icon = CreateFrame("Frame", nil, container)
+    icon.border = CreateFrame("Frame", nil, icon, "BackdropTemplate")
+    icon.border:SetAllPoints()
+    icon.border:SetBackdrop({edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1, insets = {left = 1, right = 1, top = 1, bottom = 1}})
+    icon.border:SetBackdropBorderColor(0, 0, 0, 1)
+    icon.icon = icon:CreateTexture(nil, "ARTWORK")
+    icon.icon:SetAllPoints()
+
+    return icon
+end
+
+---Create the kick icon container holding both the main and sub icon frames, so dragging the container moves both
+local function CreateKickIcon(self)
+    local container = CreateFrame("Frame", nil, self.frame)
+    container.active = false
+    container:Hide()
+
+    container.mainIcon = CreateKickIconTexture(container)
+    container.subIcon = CreateKickIconTexture(container)
+    container.subIcon:Hide()
+
+    return container
+end
+
 -- MARK: Initialize
 
 ---Initialize(Constructor)
@@ -60,6 +87,9 @@ function FocusInterrupt:Initialize()
         self.bars.target = self:CreateBar()
         self.bars.target.active = false
     end
+
+    -- always create the kick icons, whether they are in use is tracked via .active instead of their existence
+    self.kickIcon = CreateKickIcon(self)
 
     return self
 end
@@ -189,16 +219,10 @@ local function ActivateComponent(self, active, unit)
         self.bars[unit]:Hide()
     end
 
-    if self.kickIcon and active and self.kickIcon.active then
-       self.kickIcon:Show()
-    elseif self.kickIcon then
+    if active and self.kickIcon.active then
+        self.kickIcon:Show()
+    else
         self.kickIcon:Hide()
-    end
-
-    if self.subInterrupt and self.subKickIcon and active and self.subKickIcon.active then
-        self.subKickIcon:Show()
-    elseif self.subKickIcon then
-        self.subKickIcon:Hide()
     end
 end
 
@@ -219,32 +243,29 @@ end
 ---Update kick icons, make sure icons are instantialized before use this
 ---@param self FocusInterrupt self
 local function UpdateKickIconsStyle(self)
-    -- local anchorFrom, anchorTo = addon.Utilities:GetAnchorFrom(addon.db[self.modName]["KickIconAnchor"]), addon.db[self.modName]["KickIconAnchor"]
-    local anchorChild, anchorParent = addon.Utilities:GetGrowAnchors(addon.db[self.modName]["KickIconGrow"])
+    local anchorFrom, anchorTo = addon.Utilities:GetGrowAnchors(addon.db[self.modName]["KickIconGrow"])
+    local iconSize = addon.db[self.modName]["KickIconSize"]
+    local zoom = addon.db[self.modName]["focusIconZoom"]
+    local isVertical = addon.db[self.modName]["KickIconGrow"] == "UP" or addon.db[self.modName]["KickIconGrow"] == "DOWN"
 
-    if self.kickIcon then
-        self.kickIcon:SetSize(addon.db[self.modName]["KickIconSize"], addon.db[self.modName]["KickIconSize"])
-        self.kickIcon:ClearAllPoints()
-        self.kickIcon:SetPoint("CENTER", UIParent, "CENTER", addon.db[self.modName]["KickIconX"], addon.db[self.modName]["KickIconY"])
-        self.kickIcon.icon:SetTexCoord(
-            addon.db[self.modName]["focusIconZoom"],
-            1 - addon.db[self.modName]["focusIconZoom"],
-            addon.db[self.modName]["focusIconZoom"],
-            1 - addon.db[self.modName]["focusIconZoom"]
-        )
-    end
+    -- the container needs room for both icons along the grow axis only when the sub icon is in use
+    local width = (not isVertical and self.subInterrupt) and iconSize * 2 or iconSize
+    local height = (isVertical and self.subInterrupt) and iconSize * 2 or iconSize
 
-    if self.subKickIcon then
-        self.subKickIcon:SetSize(addon.db[self.modName]["KickIconSize"], addon.db[self.modName]["KickIconSize"])
-        self.subKickIcon:ClearAllPoints()
-        self.subKickIcon:SetPoint(anchorChild, self.kickIcon, anchorParent, 0, 0)
-        self.subKickIcon.icon:SetTexCoord(
-            addon.db[self.modName]["focusIconZoom"],
-            1 - addon.db[self.modName]["focusIconZoom"],
-            addon.db[self.modName]["focusIconZoom"],
-            1 - addon.db[self.modName]["focusIconZoom"]
-        )
-    end
+    -- set size of the kick icon container based on grow
+    self.kickIcon:SetSize(width, height)
+    self.kickIcon:ClearAllPoints()
+    self.kickIcon:SetPoint("CENTER", UIParent, "CENTER", addon.db[self.modName]["KickIconX"], addon.db[self.modName]["KickIconY"])
+
+    self.kickIcon.mainIcon:SetSize(iconSize, iconSize)
+    self.kickIcon.mainIcon:ClearAllPoints()
+    self.kickIcon.mainIcon:SetPoint(anchorFrom, self.kickIcon, anchorFrom, 0, 0)
+    self.kickIcon.mainIcon.icon:SetTexCoord(zoom, 1 - zoom, zoom, 1 - zoom)
+
+    self.kickIcon.subIcon:SetSize(iconSize, iconSize)
+    self.kickIcon.subIcon:ClearAllPoints()
+    self.kickIcon.subIcon:SetPoint(anchorFrom, self.kickIcon.mainIcon, anchorTo, 0, 0)
+    self.kickIcon.subIcon.icon:SetTexCoord(zoom, 1 - zoom, zoom, 1 - zoom)
 end
 
 --MARK: Update Kick Icons
@@ -256,22 +277,24 @@ end
 ---@param isInterruptReady boolean if the interrupt ready
 ---@param subInterruptReady boolean? if the sub-interrupt ready
 local function UpdateKickIcons(self, interrupted, notInterruptible, isInterruptReady, subInterruptReady)
-    if self.kickIcon then
-        if interrupted then -- if interrupted already, just hide both icons
-            self.kickIcon:SetAlphaFromBoolean(interrupted, 0, 255)
-            if self.subInterrupt then
-                self.subKickIcon:SetAlphaFromBoolean(interrupted, 0, 255)
-            end
-            return
-        end
+    if not self.kickIcon.active then return end
 
-        self.kickIcon:SetAlphaFromBoolean(isInterruptReady)
-        self.kickIcon:SetAlphaFromBoolean(notInterruptible, 0, self.kickIcon:GetAlpha())
+    local mainIcon, subIcon = self.kickIcon.mainIcon, self.kickIcon.subIcon
 
+    if interrupted then -- if interrupted already, just hide both icons
+        mainIcon:SetAlphaFromBoolean(interrupted, 0, 255)
         if self.subInterrupt then
-            self.subKickIcon:SetAlphaFromBoolean(subInterruptReady)
-            self.subKickIcon:SetAlphaFromBoolean(notInterruptible, 0, self.subKickIcon:GetAlpha())
+            subIcon:SetAlphaFromBoolean(interrupted, 0, 255)
         end
+        return
+    end
+
+    mainIcon:SetAlphaFromBoolean(isInterruptReady)
+    mainIcon:SetAlphaFromBoolean(notInterruptible, 0, mainIcon:GetAlpha())
+
+    if self.subInterrupt then
+        subIcon:SetAlphaFromBoolean(subInterruptReady)
+        subIcon:SetAlphaFromBoolean(notInterruptible, 0, subIcon:GetAlpha())
     end
 end
 
@@ -409,63 +432,29 @@ local function OnUpdate(self, unit, duration, isChannel, notInterruptible)
     end
 end
 
--- MARK: Create KickIcon
-
-local function CreateKickIcon(self)
-    local kickIcon = CreateFrame("Frame", nil, self.frame)
-    kickIcon.border = CreateFrame("Frame", nil, kickIcon, "BackdropTemplate")
-    kickIcon.border:SetAllPoints()
-    kickIcon.border:SetBackdrop({edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1, insets = {left = 1, right = 1, top = 1, bottom = 1}})
-    kickIcon.border:SetBackdropBorderColor(0, 0, 0, 1)
-    kickIcon.icon = kickIcon:CreateTexture(nil, "ARTWORK")
-    kickIcon.icon:SetAllPoints()
-    kickIcon:Hide()
-
-    return kickIcon
-end
-
 -- MARK: Update InterruptID
 
+---Determine whether the kick icons should be active and set their textures, the icon frames themselves always exist
+---@param self FocusInterrupt self
 local function LoadInterruptIcon(self)
     -- if show kick icon and (not only demo warlock or (only demo warlock and spec is demo)) -> show kick icon
     if addon.db[self.modName]["ShowKickIcons"] and (not addon.db[self.modName]["ShowDemoWarlockOnly"] or (addon.db[self.modName]["ShowDemoWarlockOnly"] and self.subInterrupt)) then
-        if self.subInterrupt then -- if demo warlock, load two icons
-            if not self.kickIcon then
-                self.kickIcon = CreateKickIcon(self)
-            end
-            self.kickIcon.active = true
+        self.kickIcon.active = true
+        self.kickIcon.mainIcon.icon:SetTexture(C_Spell.GetSpellInfo(self.interruptID).iconID or UNKNOWN_SPELL_TEXTURE) -- set main kick icon texture
 
-            if not self.subKickIcon then
-                self.subKickIcon = CreateKickIcon(self)
-            end
-            self.subKickIcon.active = true
-        else -- if not demo warlock, only load main kick icon
-            if not self.kickIcon then
-                self.kickIcon = CreateKickIcon(self)
-            end
-            self.kickIcon.active = true
-
-            if self.subKickIcon then
-                self.subKickIcon:Hide()
-                self.subKickIcon.active = false
-            end
-        end
-
-        UpdateKickIconsStyle(self) -- update icons' position and size according to settings
-        self.kickIcon.icon:SetTexture(C_Spell.GetSpellInfo(self.interruptID).iconID or UNKNOWN_SPELL_TEXTURE) -- set main kick icon texture
-        if self.subKickIcon and self.subInterrupt then
-            self.subKickIcon.icon:SetTexture(C_Spell.GetSpellInfo(self.subInterrupt).iconID or UNKNOWN_SPELL_TEXTURE) -- set sub kick icon texture
+        if self.subInterrupt then -- if demo warlock/protection sub-interrupt, also load the sub icon
+            self.kickIcon.subIcon:Show()
+            self.kickIcon.subIcon.icon:SetTexture(C_Spell.GetSpellInfo(self.subInterrupt).iconID or UNKNOWN_SPELL_TEXTURE) -- set sub kick icon texture
+        else
+            self.kickIcon.subIcon:Hide()
         end
     else
-        if self.kickIcon then
-            self.kickIcon:Hide()
-            self.kickIcon.active = false
-        end
-        if self.subKickIcon then
-            self.subKickIcon:Hide()
-            self.subKickIcon.active = false
-        end
+        self.kickIcon:Hide()
+        self.kickIcon.active = false
+        self.kickIcon.subIcon:Hide()
     end
+
+    UpdateKickIconsStyle(self) -- the container's size depends on whether the sub icon is in use
 end
 
 ---Update FocusInterrupt's interruptID
@@ -740,9 +729,7 @@ function FocusInterrupt:UpdateStyle()
         UpdateBarStyle(self, unit)
     end
 
-    if self.kickIcon then
-        UpdateKickIconsStyle(self) -- update icons if exist
-    end
+    UpdateKickIconsStyle(self) -- the kick icons always exist, only style (size/position) needs refreshing here
 
     if not self.macroLoaded then -- only sync the focus macro once, further updates go through UpdateFocusMacro directly
         self:UpdateFocusMacro()
@@ -783,9 +770,9 @@ function FocusInterrupt:Test(on)
         testDuration:SetTimeFromStart(GetTime(), 30)
         UpdateInterruptId(self)
 
-        addon.Utilities:MakeFrameDragPosition(self.bars[unit], self.modName, unit .. "X", unit .. "Y", function() -- drag for re-positioning and capable of running test mode simultaneously
+        addon.Utilities:ShowEditFrame(self.bars[unit], addon.db[self.modName], unit .. "X", unit .. "Y", nil, function() -- drag for re-positioning and capable of running test mode simultaneously
             OnUpdate(self, unit, testDuration, false, false)
-        end)
+        end, L["FocusInterruptSettings"])
 
         ActivateComponent(self, true, unit)
     end
@@ -795,13 +782,24 @@ function FocusInterrupt:Test(on)
             TestBar(unit)
         end
 
-        if self.kickIcon and self.kickIcon.active then
-            addon.Utilities:MakeFrameDragPosition(self.kickIcon, self.modName, "KickIconX", "KickIconY")
+        if addon.db[self.modName]["ShowKickIcons"] then
+            self.kickIcon:Show() -- always preview the drag handle in test mode, regardless of ShowKickIcons
+            addon.Utilities:ShowEditFrame(self.kickIcon, addon.db[self.modName], "KickIconX", "KickIconY", nil, nil, L["InterruptIconsSettings"])
         end
     else
         for unit, _ in pairs(self.bars) do
             self.bars[unit].active = false
             ActivateComponent(self, false, unit)
+            addon.Utilities:HideEditFrame(self.bars[unit])
+        end
+
+        if addon.db[self.modName]["ShowKickIcons"] then
+            addon.Utilities:HideEditFrame(self.kickIcon)
+        end
+        if addon.db[self.modName]["ShowKickIcons"] then
+            if not self.kickIcon.active then -- revert to its real state if the icons are actually disabled
+                self.kickIcon:Hide()
+            end
         end
     end
 end

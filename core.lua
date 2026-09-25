@@ -34,23 +34,6 @@ function Core:Initialize()
 end
 
 -- private methods
--- MARK: private event register
-
----Register event for the EventHandler on the EventHandler.eventFrame
----@param self Core self
----@param event string event to register
----@param unit nil|string|table<string>? if this is a unit event, the unit name or units list
-local function RegisterE(frame, event, unit)
-    if unit then
-        if type(unit) == "table" then
-            frame:RegisterUnitEvent(event, unpack(unit))
-        else
-            frame:RegisterUnitEvent(event, unit)
-        end
-    else
-        frame:RegisterEvent(event)
-    end
-end
 
 -- MARK: Event Handler
 
@@ -96,7 +79,15 @@ function Core:RegisterEvent(event, frame, mod, unit)
 
     table.insert(self.eventMap[event], mod)
 
-    RegisterE(frame, event, unit)
+    if unit then
+        if type(unit) == "table" then
+            frame:RegisterUnitEvent(event, unpack(unit))
+        else
+            frame:RegisterUnitEvent(event, unit)
+        end
+    else
+        frame:RegisterEvent(event)
+    end
 end
 
 -- MARK: Register State
@@ -113,7 +104,15 @@ function Core:RegisterState(event, unit, name, updateFunc)
 
     self.statesUpdate[event][name] = updateFunc
 
-    RegisterE(self.eventFrame, event, unit)
+    if unit then
+        if type(unit) == "table" then
+            self.eventFrame:RegisterUnitEvent(event, unpack(unit))
+        else
+            self.eventFrame:RegisterUnitEvent(event, unit)
+        end
+    else
+        self.eventFrame:RegisterEvent(event)
+    end
 end
 
 -- MARK: Register State Monitor
@@ -158,7 +157,12 @@ function Core:LoadModule(mod)
     local loadedAlready = self:HasModuleLoaded(mod)
 
     if not loadedAlready and self.registeredMods[mod] and addon.db[mod]["Enabled"] then
-        self.modules[mod] = self.registeredMods[mod].initialize()
+        local success, result = pcall(self.registeredMods[mod].initialize)
+        self.modules[mod] = success and result or nil
+        if not success then -- otherwise the module silently stays unloaded
+            addon.Utilities:print(string.format("|cffff0000%s failed to load|r: %s", mod, tostring(result)))
+            return false
+        end
         if self.modules[mod] and self.modules[mod].RegisterEvents then
             self.modules[mod]:RegisterEvents()
             self.loadedMods = self.loadedMods + 1
@@ -215,7 +219,7 @@ function Core:TestMode(on)
 
     for _, module in pairs(self.modules) do -- for all loaded modules, call the Test function if it exists
         if module.Test then
-            module:Test(self.testMode)
+            pcall(module.Test, module, self.testMode)
         end
     end
 end

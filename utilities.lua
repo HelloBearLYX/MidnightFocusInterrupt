@@ -173,41 +173,66 @@ end
 
 -- MARK: Drag Position
 
----Make a "frame" object draggable for re-positioning
+---Initialize (or reuse) the editFrame layered above "frame" to catch mouse input and show a labeled highlight
 ---@param frame frame Blizzard frame object
----@param mod string the mod to access addon profile(the mod key for the addon.db[mod])
----@param xKey string the option to access addon profile(the option key for the addon.db[mod][xKey])
----@param yKey string the option to access addon profile(the option key for the addon.db[mod][xKey])
----@param updateFunc function? additional function to call in update
-function addon.Utilities:MakeFrameDragPosition(frame, mod, xKey, yKey, updateFunc)
-	local function updatePosition(frame)
+---@param dbTable table the table to persist the position into (e.g. addon.db[mod] or a nested options table)
+---@param xKey string the field of dbTable holding the x offset
+---@param yKey string the field of dbTable holding the y offset
+---@param anchorFrom string? the anchor point to attach the frame from, defaults to "CENTER"
+---@param updateFunc function? additional function to call every frame while test mode is active
+---@param label string? text to display on the editFrame highlight
+local function InitializeEditFrame(frame, dbTable, xKey, yKey, anchorFrom, updateFunc, label)
+	local function updatePosition(editFrame)
 		local x, y = GetCursorPosition()
 		x, y = addon.Utilities:ScreenPositionToUIPosition(x, y)
 		x, y = math.floor(x + 0.5), math.floor(y + 0.5) -- round the position to integers
 
 		frame:ClearAllPoints()
-		frame:SetPoint("CENTER", UIParent, "CENTER", x, y)
+		frame:SetPoint(editFrame.anchorFrom, UIParent, "CENTER", x, y)
 		return x, y
 	end
 
-	frame:SetScript("OnMouseDown", function (self, button)
-		if button == "LeftButton" and addon.core:IsTestOn() and not InCombatLockdown() then
-			self.isDragging = true
-			updatePosition(self)
-		end
-	end)
+	if not frame.editFrame then
+		local editFrame = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+		editFrame:EnableMouse(true)
+		editFrame:SetFrameStrata("FULLSCREEN_DIALOG")
+		editFrame:SetBackdrop({
+			bgFile = "Interface\\Buttons\\WHITE8x8",
+			edgeFile = "Interface\\Buttons\\WHITE8x8",
+			tile = false, tileSize = 1, edgeSize = 1,
+			insets = { left = 0, right = 0, top = 0, bottom = 0 }
+		})
+		editFrame:SetBackdropColor(1, 1, 1, 0.5)
+		editFrame:SetBackdropBorderColor(1, 1, 1, 1)
 
-	frame:SetScript("OnMouseUp", function (self, button)
-		if button == "LeftButton" and self.isDragging then
-			self.isDragging = nil
-			
-			updatePosition(self)
+		editFrame.text = editFrame:CreateFontString(nil, "OVERLAY")
+		editFrame.text:SetFont(addon.DEFAULTS.font, 10, "OUTLINE")
+		editFrame.text:SetPoint("CENTER", editFrame, "TOP", 0, 0)
 
-			addon.db[mod][xKey], addon.db[mod][yKey] = updatePosition(self)
-		end
-	end)
+		editFrame:SetScript("OnMouseDown", function (self, button)
+			if button == "LeftButton" and addon.core:IsTestOn() and not InCombatLockdown() then
+				self.isDragging = true
+				updatePosition(self)
+			end
+		end)
 
-	frame:SetScript("OnUpdate", function (self)
+		editFrame:SetScript("OnMouseUp", function (self, button)
+			if button == "LeftButton" and self.isDragging then
+				self.isDragging = nil
+				self.dbTable[self.xKey], self.dbTable[self.yKey] = updatePosition(self)
+			end
+		end)
+
+		frame.editFrame = editFrame
+	end
+
+	local editFrame = frame.editFrame
+	editFrame.dbTable, editFrame.xKey, editFrame.yKey = dbTable, xKey, yKey
+	editFrame.anchorFrom = anchorFrom or "CENTER"
+	editFrame.text:SetText(label or "")
+	editFrame:ClearAllPoints()
+	editFrame:SetAllPoints(frame)
+	editFrame:SetScript("OnUpdate", function (self)
 		if self.isDragging then
 			updatePosition(self)
 		end
@@ -216,32 +241,31 @@ function addon.Utilities:MakeFrameDragPosition(frame, mod, xKey, yKey, updateFun
 			updateFunc()
 		end
 	end)
+
+	frame.editFrame = editFrame
 end
 
 -- MARK: Drag Region
 
----Create a drag region backgound for frame(especially non-texture like text frame)
----@param frame frame (parent)frame to take the drag region
-function addon.Utilities:ShowDragRegion(frame, name)
-	if frame.dragRegion then
-		frame.dragRegion:Show()
-		frame.dragRegion.text:Show()
-		return
-	end
-
-	frame.dragRegion = frame:CreateTexture(nil, "BACKGROUND")
-	frame.dragRegion:SetAllPoints()
-	frame.dragRegion:SetColorTexture(0, 0, 1, 0.5)
-	frame.dragRegion.text = frame:CreateFontString(nil, "OVERLAY")
-	frame.dragRegion.text:SetFont(addon.DEFAULTS.font, 10, "OUTLINE")
-	frame.dragRegion.text:SetPoint("CENTER", frame.dragRegion, "TOP", 0, 0)
-	frame.dragRegion.text:SetText(name or "")
+---Show the drag editFrame (highlight + label + draggability) created by InitializeEditFrame
+---@param frame frame Blizzard frame object
+---@param dbTable table the table to persist the position into (e.g. addon.db[mod] or a nested options table)
+---@param xKey string the field of dbTable holding the x offset
+---@param yKey string the field of dbTable holding the y offset
+---@param anchorFrom string? the anchor point to attach the frame from, defaults to "CENTER"
+---@param updateFunc function? additional function to call every frame while test mode is active
+---@param label string? text to display on the editFrame highlight
+function addon.Utilities:ShowEditFrame(frame, dbTable, xKey, yKey, anchorFrom, updateFunc, label)
+	if not dbTable or not xKey or not yKey then return end -- if missing any parameter just early return
+	InitializeEditFrame(frame, dbTable, xKey, yKey, anchorFrom, updateFunc, label)
+	frame.editFrame:Show()
 end
 
-function addon.Utilities:HideDragRegion(frame)
-	if frame.dragRegion then
-		frame.dragRegion:Hide()
-		frame.dragRegion.text:Hide()
+---Hide the drag editFrame created by ShowEditFrame
+---@param frame frame the frame previously passed to ShowEditFrame
+function addon.Utilities:HideEditFrame(frame)
+	if frame.editFrame then
+		frame.editFrame:Hide()
 	end
 end
 
