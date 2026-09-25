@@ -126,3 +126,8 @@ L["SparkEnabled"] = "Cast Spark"
 L["KickSparkEnabled"] = "Kick Spark"
 L["SparkColor"] = "Spark Color"
 L["SparkWidth"] = "Spark Width"
+
+L["EnabledMarkNotification"] = "Notify Kick Mark"
+L["EnabledMarkNotificationDesc"] = "When a ready check starts, notify the party which raid marker is assigned to interrupt\nThis module also generate a macro which automatically sets the focus on mouserover/target with the configured kick mark\nThe macro is named 'HBT_SetFocus' in general macros"
+L["KickMark"] = "Kick Mark"
+L["KickMarkMessage"] = "My focus mark is: %s"

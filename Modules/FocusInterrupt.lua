@@ -44,6 +44,9 @@ local WARLOCK_PET_SUMMON = {
     [30146] = INTERRUPT_BY_CLASS["WARLOCK"]["DEMONOLOGY"], -- Felguard
     [691] = INTERRUPT_BY_CLASS["WARLOCK"]["DEFAULT"], -- Felhunter
 }
+local FOCUS_MACRO_NAME = "HBT_SetFocus"
+local FOCUS_MACRO_ICON = "ability_hunter_mastermarksman"
+local FOCUS_MACRO_BODY = "/clearfocus\n/focus [@mouseover,exists][]\n/tm [@mouseover,exists][] %d"
 
 -- MARK: Initialize
 
@@ -62,6 +65,32 @@ function FocusInterrupt:Initialize()
 end
 
 -- private methods
+
+-- MARK: Focus Macro
+
+---Create/update the "SetFocus_HBT" macro so its raid mark number matches the configured kick mark
+---@param self FocusInterrupt self
+local function UpdateFocusMacro(self)
+    local body = FOCUS_MACRO_BODY:format(addon.db[self.modName]["KickMark"])
+    local index = GetMacroIndexByName(FOCUS_MACRO_NAME)
+    if index and index > 0 then
+        EditMacro(index, FOCUS_MACRO_NAME, FOCUS_MACRO_ICON, body)
+    else
+        CreateMacro(FOCUS_MACRO_NAME, FOCUS_MACRO_ICON, body)
+    end
+end
+
+-- MARK: Kick Mark Handler
+local function NotifyKickMark(self)
+    if not addon.db[self.modName]["EnabledMarkNotification"] then return end
+
+    local mark = string.format("{rt%d}", addon.db[self.modName]["KickMark"])
+    local msg = L["KickMarkMessage"]:format(mark)
+
+    if IsInGroup() and not IsInRaid() then
+        C_ChatInfo.SendChatMessage(msg, "PARTY")
+    end
+end
 
 -- MARK: Get Demo Warlock ID
 local function SetDemoWarlockInterrupt(self, unit, spellID)
@@ -714,6 +743,18 @@ function FocusInterrupt:UpdateStyle()
     if self.kickIcon then
         UpdateKickIconsStyle(self) -- update icons if exist
     end
+
+    if not self.macroLoaded then -- only sync the focus macro once, further updates go through UpdateFocusMacro directly
+        self:UpdateFocusMacro()
+        self.macroLoaded = true
+    end
+end
+
+-- MARK: Update Focus Macro
+
+---Public accessor to sync the "SetFocus_HBT" macro with the configured kick mark
+function FocusInterrupt:UpdateFocusMacro()
+    UpdateFocusMacro(self)
 end
 
 -- MARK: Test
@@ -855,6 +896,14 @@ function FocusInterrupt:RegisterEvents() -- for cast-start events
     for _, bar in pairs(self.bars) do
         bar:SetScript("OnEvent", BarOnEvent)
     end
+
+    -- hook independent kick mark
+    addon.core:RegisterEvent("READY_CHECK", self.frame, self.modName)
+    self.frame:SetScript("OnEvent", function(_, event, ...)
+        if event == "READY_CHECK" then
+            NotifyKickMark(self)
+        end
+    end)
 end
 
 -- MARK: Register Module

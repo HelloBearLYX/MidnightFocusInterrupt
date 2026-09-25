@@ -129,3 +129,8 @@ L["SparkEnabled"] = "施法火花"
 L["KickSparkEnabled"] = "打断火花"
 L["SparkColor"] = "火花颜色"
 L["SparkWidth"] = "火花宽度"
+
+L["EnabledMarkNotification"] = "通告打断标记"
+L["EnabledMarkNotificationDesc"] = "当就位检查开始时, 向队伍通知负责打断的团队标记\n本模块还会生成一个宏, 可自动将焦点设置为鼠标悬停/目标, 并使用所设置的打断标记\n该宏名为'HBT_SetFocus'在通用宏中"
+L["KickMark"] = "打断标记"
+L["KickMarkMessage"] = "我的焦点标记为: %s"

@@ -10,7 +10,7 @@ local MultiDropdown = setmetatable({ type = "MultiDropdown" }, { __index = Dropd
 -- MARK: Default values
 local CHECKED_ICON = "|T" .. addon.UICore:GetAssetDirectory() .. "Checked_Border.png:14:14|t " -- "|TInterface\\Buttons\\UI-CheckBox-Check:14:14|t "
 local UNCHECKED_ICON = "|T" .. addon.UICore:GetAssetDirectory() .. "Empty_Border.png:14:14|t " -- "|TInterface\\Buttons\\UI-CheckBox-Up:14:14|t "
-local SELECTED_COLOR = { 1, 0.82, 0, 1 }
+local SELECTED_COLOR = addon.UICore:GetHighlightColor()
 local SEPARATOR = ", "
 
 local function GetSelected(widget)

@@ -7,7 +7,9 @@ local MOD_KEY = "FocusInterrupt"
 addon.configurationList[MOD_KEY] = {
     Enabled = true,
     Mute = true,
-    SoundMedia = ADDON_NAME .. "_FocusDefault",
+    EnabledMarkNotification = true,
+    KickMark = 5,
+    SoundMedia = "None",
     SoundChannel = "Master",
     CooldownHide = false,
     CooldownColor = "ffC41E3A",
@@ -94,6 +96,21 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
     GUI:CreateToggleCheckBox(interruptGroup, L["FocusInterruptibleFilter"], addon.db.FocusInterrupt.NotInterruptibleHide, function(value)
         addon.db.FocusInterrupt.NotInterruptibleHide = value
     end)
+    GUI:CreateLinebreaker(interruptGroup)
+    local kickMarkDropdown = GUI:CreateDropdown(nil, L["KickMark"], addon.Utilities.RaidMarkers, nil, addon.db.FocusInterrupt.KickMark, function(value)
+        addon.db.FocusInterrupt.KickMark = value
+        local mod = addon.core:GetModule(MOD_KEY)
+        if mod then
+            mod:UpdateFocusMacro()
+        end
+    end)
+    GUI:CreateInformationTag(interruptGroup, L["EnabledMarkNotificationDesc"], "LEFT")
+    GUI:CreateToggleCheckBox(interruptGroup, L["EnabledMarkNotification"], addon.db.FocusInterrupt.EnabledMarkNotification, function(value)
+        addon.db.FocusInterrupt.EnabledMarkNotification = value
+        kickMarkDropdown:SetDisabled(not value)
+    end)
+    kickMarkDropdown:SetDisabled(not addon.db.FocusInterrupt.EnabledMarkNotification)
+    interruptGroup:AddWidget(kickMarkDropdown)
     -- MARK: Core - Color
     local colorGroup = GUI:CreateInlineGroup(interruptGroup, L["ColorSettings"])
     GUI:CreateInformationTag(colorGroup, L["FocusColorPriorityDesc"], "LEFT")
@@ -116,11 +133,11 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
     -- MARK: Core - Interrupted
     local interruptedGroup = GUI:CreateInlineGroup(frame, L["InterruptedSettings"])
     GUI:CreateInformationTag(interruptedGroup, L["InterruptedSettingsDesc"], "LEFT")
-    GUI:CreateSlider(interruptedGroup, L["InterruptedFadeTime"], 0, 2, 0.25, addon.db.FocusInterrupt.InterruptedFadeTime, function(value)
-        addon.db.FocusInterrupt.InterruptedFadeTime = value
-    end)
     GUI:CreateToggleCheckBox(interruptedGroup, L["ShowInterrupter"], addon.db.FocusInterrupt.ShowInterrupter, function(value)
         addon.db.FocusInterrupt.ShowInterrupter = value
+    end)
+    GUI:CreateSlider(interruptedGroup, L["InterruptedFadeTime"], 0, 2, 0.25, addon.db.FocusInterrupt.InterruptedFadeTime, function(value)
+        addon.db.FocusInterrupt.InterruptedFadeTime = value
     end)
     local kickSparkGroup = GUI:CreateInlineGroup(frame, L["SparkSettings"])
     GUI:CreateToggleCheckBox(kickSparkGroup, L["SparkEnabled"], addon.db.FocusInterrupt.Spark, function(value)

@@ -16,6 +16,7 @@ addon.Utilities.Anchors = {
 	BOTTOMLEFT = "BOTTOMLEFT",
 	TOPRIGHT = "TOPRIGHT",
 	BOTTOMRIGHT = "BOTTOMRIGHT",
+	CENTER = "CENTER",
 }
 
 ---@enum growDirection the direction to grow from anchor point
@@ -34,6 +35,12 @@ addon.Utilities.SoundChannels = {
 	Ambience = L["SoundChannel"]["Ambience"],
 	Dialog = L["SoundChannel"]["Dialog"],
 }
+
+---@enum raidMarker raid target marker index to icon markup, index matches the "{rt%d}" chat icon shorthand
+addon.Utilities.RaidMarkers = {}
+for i = 1, 8 do
+	addon.Utilities.RaidMarkers[i] = string.format("|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_%d:0|t", i)
+end
 
 ---@enum frameStrata frame strata
 addon.Utilities.FrameStrata = {
@@ -137,6 +144,8 @@ function addon.Utilities:GetAnchorFrom(anchorTo)
 		return "BOTTOMRIGHT"
 	elseif anchorTo == "BOTTOMRIGHT" then
 		return "TOPRIGHT"
+	elseif anchorTo == "CENTER" then
+		return "CENTER"
 	else
 		error("Invalid Input")
 	end
@@ -176,6 +185,7 @@ function addon.Utilities:MakeFrameDragPosition(frame, mod, xKey, yKey, updateFun
 		x, y = addon.Utilities:ScreenPositionToUIPosition(x, y)
 		x, y = math.floor(x + 0.5), math.floor(y + 0.5) -- round the position to integers
 
+		frame:ClearAllPoints()
 		frame:SetPoint("CENTER", UIParent, "CENTER", x, y)
 		return x, y
 	end
@@ -223,7 +233,7 @@ function addon.Utilities:ShowDragRegion(frame, name)
 	frame.dragRegion:SetAllPoints()
 	frame.dragRegion:SetColorTexture(0, 0, 1, 0.5)
 	frame.dragRegion.text = frame:CreateFontString(nil, "OVERLAY")
-	frame.dragRegion.text:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE")
+	frame.dragRegion.text:SetFont(addon.DEFAULTS.font, 10, "OUTLINE")
 	frame.dragRegion.text:SetPoint("CENTER", frame.dragRegion, "TOP", 0, 0)
 	frame.dragRegion.text:SetText(name or "")
 end
@@ -338,13 +348,13 @@ function addon.Utilities:GetAllSpecIconList(withColor)
 	local output = {}
 
 	for class = 1, 13 do
-		local classColor = C_ClassColor.GetClassColor(select(2, GetClassInfo(class))):GenerateHexColor()
+		local classColorObj = C_ClassColor.GetClassColor(select(2, GetClassInfo(class)))
 		local specsCount = C_SpecializationInfo.GetNumSpecializationsForClassID(class)
 		output[class] = {}
 		for specIndex = 1, specsCount do
 			local specID, name, _, icon = GetSpecializationInfoForClassID(class, specIndex)
 			if withColor then
-				output[class][specID] = string.format("|T%d:0|t|c%s%s|r", icon, classColor, name)
+				output[class][specID] = string.format("|T%d:0|t", icon) .. classColorObj:WrapTextInColorCode(name)
 			else
 				output[class][specID] = string.format("|T%d:0|t%s", icon, name)
 			end
