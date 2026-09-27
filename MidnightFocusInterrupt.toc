@@ -3,7 +3,7 @@
 ## Notes: Focus Cast Bar Replacement which integrated with Interrupt Ready and Interruptible filter which greatly helps accuracy of interrupts
 ## Author: HBLyx
 ## OptionalDeps: LibSharedMedia-3.0, AceConfig-3.0
-## Version: 4.4.0
+## Version: 4.5.0
 ## SavedVariables: MidnightFocusInterrupt_DB
 ## IconTexture: Interface\AddOns\MidnightFocusInterrupt\Media\HBLyx.png
 ## Category: CastBar
@@ -31,6 +31,7 @@ Configs\FocusInterrupt.lua
 Configs\Profile.lua
 
 # developer use only
+developer.lua
 # Modules\DeveloperTools.lua
 #GUI\TestDemo.lua
 

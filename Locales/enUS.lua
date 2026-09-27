@@ -15,6 +15,11 @@ L["NotificationContent"] =
 	"|cff8788eeMidnightFocusInterrupt|r: Focus Interrupt module standalone version" .. "\n" ..
 	"|cff8788eeSharedMedia_HBLyx|r: an AI-generated Chinese sound pack(LibSharedMedia)"
 
+-- MARK: Modules Overview
+L["ModulesOverview"] = "Modules Overview"
+L["LoadedModules"] = "Loaded Modules"
+L["UnloadedModules"] = "Unloaded Modules"
+
 -- MARK： Downloads/Update
 L["Downloads/Update"] = "Downloads/Update"
 L["Release_Info"] = "The official release version is |cffff0000only available on the following sites, all others are not from the author|r"

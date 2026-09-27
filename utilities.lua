@@ -179,9 +179,10 @@ end
 ---@param xKey string the field of dbTable holding the x offset
 ---@param yKey string the field of dbTable holding the y offset
 ---@param anchorFrom string? the anchor point to attach the frame from, defaults to "CENTER"
----@param updateFunc function? additional function to call every frame while test mode is active
 ---@param label string? text to display on the editFrame highlight
-local function InitializeEditFrame(frame, dbTable, xKey, yKey, anchorFrom, updateFunc, label)
+---@param modKey string? module key, used later
+---@param updateFunc function? additional function to call every frame while test mode is active
+local function InitializeEditFrame(frame, dbTable, xKey, yKey, anchorFrom, label, modKey, updateFunc)
 	local function updatePosition(editFrame)
 		local x, y = GetCursorPosition()
 		x, y = addon.Utilities:ScreenPositionToUIPosition(x, y)
@@ -220,6 +221,8 @@ local function InitializeEditFrame(frame, dbTable, xKey, yKey, anchorFrom, updat
 			if button == "LeftButton" and self.isDragging then
 				self.isDragging = nil
 				self.dbTable[self.xKey], self.dbTable[self.yKey] = updatePosition(self)
+			elseif button == "RightButton" then
+				addon.GUI:OpenModuleGUI(modKey)
 			end
 		end)
 
@@ -253,11 +256,12 @@ end
 ---@param xKey string the field of dbTable holding the x offset
 ---@param yKey string the field of dbTable holding the y offset
 ---@param anchorFrom string? the anchor point to attach the frame from, defaults to "CENTER"
----@param updateFunc function? additional function to call every frame while test mode is active
 ---@param label string? text to display on the editFrame highlight
-function addon.Utilities:ShowEditFrame(frame, dbTable, xKey, yKey, anchorFrom, updateFunc, label)
+---@param modKey string? module key, used later
+---@param updateFunc function? additional function to call every frame while test mode is active
+function addon.Utilities:ShowEditFrame(frame, dbTable, xKey, yKey, anchorFrom, label, modKey, updateFunc)
 	if not dbTable or not xKey or not yKey then return end -- if missing any parameter just early return
-	InitializeEditFrame(frame, dbTable, xKey, yKey, anchorFrom, updateFunc, label)
+	InitializeEditFrame(frame, dbTable, xKey, yKey, anchorFrom, label, modKey, updateFunc)
 	frame.editFrame:Show()
 end
 

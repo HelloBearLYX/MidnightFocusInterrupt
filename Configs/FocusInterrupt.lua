@@ -69,8 +69,7 @@ local function update()
 end
 
 -- GUI
-GUI.TagPanels.FocusInterrupt = {}
-function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
+local function RenderPanel(parent)
     -- MARK: General
     local frame = parent
     GUI:CreateToggleCheckBox(frame, L["Enable"] .. "|cff0070DD" .. L["FocusInterruptSettings"] .. "|r", addon.db.FocusInterrupt.Enabled, function(value)
@@ -381,3 +380,5 @@ function GUI.TagPanels.FocusInterrupt:CreateTabPanel(parent)
 
     return frame
 end
+
+GUI:RegisterModule(MOD_KEY, RenderPanel)

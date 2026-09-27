@@ -770,9 +770,9 @@ function FocusInterrupt:Test(on)
         testDuration:SetTimeFromStart(GetTime(), 30)
         UpdateInterruptId(self)
 
-        addon.Utilities:ShowEditFrame(self.bars[unit], addon.db[self.modName], unit .. "X", unit .. "Y", nil, function() -- drag for re-positioning and capable of running test mode simultaneously
+        addon.Utilities:ShowEditFrame(self.bars[unit], addon.db[self.modName], unit .. "X", unit .. "Y", nil, L["FocusInterruptSettings"], self.modName, function() -- drag for re-positioning and capable of running test mode simultaneously
             OnUpdate(self, unit, testDuration, false, false)
-        end, L["FocusInterruptSettings"])
+        end)
 
         ActivateComponent(self, true, unit)
     end
@@ -784,7 +784,7 @@ function FocusInterrupt:Test(on)
 
         if addon.db[self.modName]["ShowKickIcons"] then
             self.kickIcon:Show() -- always preview the drag handle in test mode, regardless of ShowKickIcons
-            addon.Utilities:ShowEditFrame(self.kickIcon, addon.db[self.modName], "KickIconX", "KickIconY", nil, nil, L["InterruptIconsSettings"])
+            addon.Utilities:ShowEditFrame(self.kickIcon, addon.db[self.modName], "KickIconX", "KickIconY", nil, L["InterruptIconsSettings"], self.modName)
         end
     else
         for unit, _ in pairs(self.bars) do
@@ -905,4 +905,4 @@ function FocusInterrupt:RegisterEvents() -- for cast-start events
 end
 
 -- MARK: Register Module
-addon.core:RegisterModule(FocusInterrupt.modName, function() return FocusInterrupt:Initialize() end)
+addon.core:RegisterModule(FocusInterrupt.modName, L["FocusInterruptSettings"], function() return FocusInterrupt:Initialize() end)
