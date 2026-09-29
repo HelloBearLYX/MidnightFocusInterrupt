@@ -90,8 +90,19 @@ end
 local function SetUpSlashCommand()
 	SLASH_MFI1 = "/mfi"
 	SLASH_MFI2 = "/midnightfocusinterrupt"
-	SlashCmdList["MFI"] = function()
-		addon.GUI:OpenGUI()
+	SlashCmdList["MFI"] = function(message)
+		local command, rest = strsplit(" ", message, 2)
+		if command == "" then
+			if addon.GUI and addon.GUI.isOpened then
+				addon.GUI:CloseGUI()
+			else
+				addon.GUI:OpenGUI()
+			end
+		elseif command == "dev" or command == "developer" then
+			addon.Developer:DisplayAddonInfo()
+		elseif command == "test" or command == "unlock" then
+			addon.core:TestMode()
+		end
 	end
 end
 
@@ -109,6 +120,9 @@ local function InitializeStates()
 
 	-- player class
 	addon.states["playerClass"] = select(2, UnitClass("player")) -- "ADDON_LOADED"
+	addon.core:RegisterState("PLAYER_ENTERING_WORLD", nil, "playerClass", function()
+		addon.states["playerClass"] = select(2, UnitClass("player"))
+	end)
 
 	-- player spec state
 	local GetSpec = function ()

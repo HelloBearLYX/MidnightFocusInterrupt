@@ -10,10 +10,12 @@ L["Notifications"] = "通知"
 L["NotificationContent"] =
 	"配置面板的GUI已经从零开始完全重建, 并且独立于AceGUI\n" ..
 	"希望你喜欢新的UI体验!\n\n" ..
-	"选项界面中的标签页显示了本插件包含的模块, 你可以分别配置每个模块" .. "\n\n" ..
-	"你可以在|cff8788eeHBLyx|r的页面里找到:" .. "\n" ..
-	"|cff8788eeHBLyx_Tools|r: 一个包含战斗指示器, 战斗计时器, 焦点打断以及更多模块的集合" .. "\n" ..
-	"|cff8788eeMidnightFocusInterrupt|r: 焦点打断模块的独立版本" .. "\n" ..
+	"测试模式可以让你预览以及调整大部分模块\n" ..
+	"左键拖动每个控件, 右键点击进入对应模块的设置面板\n" ..
+	"测试模式可以通过输入\"|cff8788ee/mfi test|r\"或\"|cff8788ee/mfi unlock|r\"命令来开启\n\n" ..
+	"你可以在|cff8788eeHBLyx|r的页面里找到:\n" ..
+	"|cff8788eeHBLyx_Tools|r: 一个包含战斗指示器, 战斗计时器, 焦点打断以及更多模块的集合\n" ..
+	"|cff8788eeMidnightFocusInterrupt|r: 焦点打断模块的独立版本\n" ..
 	"|cff8788eeSharedMedia_HBLyx|r: 一个AI生成的中文语音素材包(LibSharedMedia)"
 
 -- MARK: Modules Overview

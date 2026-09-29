@@ -9,10 +9,12 @@ L["Notifications"] = "Notifications"
 L["NotificationContent"] =
 	"The GUI of Configurations panel is totally re-built from scratch and independent from AceGUI\n" ..
 	"Hope you enjoy the new UI experience!\n\n" ..
-	"The tabs shows modules contained in this addon, you can configure each module separately." .. "\n\n" ..
-	"You can find on |cff8788eeHBLyx|r's page:" .. "\n" ..
-	"|cff8788eeHBLyx_Tools|r: a collection of modules including Combat Indicator, Combat Timer, Focus Interrupt and more modules" .. "\n" ..
-	"|cff8788eeMidnightFocusInterrupt|r: Focus Interrupt module standalone version" .. "\n" ..
+	"Test mode allows you to preview and adjust positions of most modules\n" ..
+	"Left-click to drag each widget, right-click to enter the corresponding module's configuration panel\n" ..
+	"Test mode can be toggled by using \"|cff8788ee/mfi test|r\" or \"|cff8788ee/mfi unlock|r\"\n\n" ..
+	"You can find on |cff8788eeHBLyx|r's page:\n" ..
+	"|cff8788eeHBLyx_Tools|r: a collection of modules including Combat Indicator, Combat Timer, Focus Interrupt and more modules\n" ..
+	"|cff8788eeMidnightFocusInterrupt|r: Focus Interrupt module standalone version\n" ..
 	"|cff8788eeSharedMedia_HBLyx|r: an AI-generated Chinese sound pack(LibSharedMedia)"
 
 -- MARK: Modules Overview
