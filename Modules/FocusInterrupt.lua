@@ -308,7 +308,7 @@ local function InterruptHandler(self, unit, guid)
     local interrupter, class = GetInterrupter(guid)
 
     if addon.db[self.modName]["ShowInterrupter"] then
-        self.bars[unit].spellText:SetText(L["Interrupted"] .. ": " .. C_ClassColor.GetClassColor(class or "PRIEST"):WrapTextInColorCode(interrupter))
+        self.bars[unit].spellText:SetText(L["Interrupted"] .. ": " .. C_ClassColor.GetClassColor(class or "WARLOCK"):WrapTextInColorCode(interrupter))
         self.bars[unit].targetText:SetText("")
     else
         self.bars[unit].spellText:SetText(L["Interrupted"])
