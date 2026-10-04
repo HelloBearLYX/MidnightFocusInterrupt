@@ -2,6 +2,8 @@ local ADDON_NAME, addon = ...
 local L = LibStub("AceLocale-3.0"):GetLocale(ADDON_NAME)
 
 addon.LSM = LibStub("LibSharedMedia-3.0")
+addon.LSM:Register("sound", "[HBLyx] Notification", "Interface\\AddOns\\" .. ADDON_NAME .. "\\Media\\Sound\\notification.ogg")
+addon.LSM:Register("sound", "[HBLyx] Info", "Interface\\AddOns\\" .. ADDON_NAME .. "\\Media\\Sound\\info.ogg")
 addon.DEFAULTS = {
 	font = "Fonts\\FRIZQT__.TTF",
 }

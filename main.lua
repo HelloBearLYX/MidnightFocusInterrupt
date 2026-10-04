@@ -118,6 +118,11 @@ end
 local function InitializeStates()
 	addon.states = {}
 
+	-- interface number
+	-- GetBuildInfo is available at ADDON_LOADED, before modules initialize.
+	addon.states["interfaceNumber"] = select(4, GetBuildInfo())
+	addon.core:RegisterState("ADDON_LOADED", nil, "interfaceNumber", function() end)
+
 	-- player class
 	addon.states["playerClass"] = select(2, UnitClass("player")) -- "ADDON_LOADED"
 	addon.core:RegisterState("PLAYER_ENTERING_WORLD", nil, "playerClass", function()

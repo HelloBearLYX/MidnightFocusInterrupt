@@ -8,7 +8,6 @@ local ADDON_NAME, addon = ...
 ---@field totalMods number total number of registered modules, used to check if all modules are loaded
 ---@field loadedMods number total number of loaded modules, used to check if all modules are loaded
 ---@field testMode boolean if the addon is in test mode
----@field registeredStates table<string, boolean> set of every addon state name that has been registered, just record for developers
 ---@field statesUpdate table<string, table<string, function>> map of event to map of addon state to update function
 ---@field statesMonitor table<string, table<string, function>> map of addon state to map of module to monitor function
 local Core = {}
@@ -280,6 +279,25 @@ function Core:GetStatesMonitorInfo()
         local entry = "|cff8788ee" .. state .. "|r(" .. #modNames .. "): " .. table.concat(modNames, ", ")
         table.insert(output, entry)
     end
+
+    return output
+end
+
+---Get "event(count): state1, state2" for every registered state update event
+---@return table<string> output
+function Core:GetStateEventInfo()
+    local output = {}
+    for event, states in pairs(self.statesUpdate) do
+        local stateNames = {}
+        for state, _ in pairs(states) do
+            table.insert(stateNames, state)
+        end
+        table.sort(stateNames)
+
+        local entry = "|cff8788ee" .. event .. "|r(" .. #stateNames .. "): " .. table.concat(stateNames, ", ")
+        table.insert(output, entry)
+    end
+    table.sort(output)
 
     return output
 end
