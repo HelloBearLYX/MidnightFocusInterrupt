@@ -40,18 +40,8 @@ local ERROR_MSG ={
 }
 
 -- localization default values
-local DEFAULT_FONT = "Fonts\\FRIZQT__.TTF"
-local LOCALE = GetLocale()
-if LOCALE == "zhCN" then
-    -- Simplified Chinese
-    DEFAULT_FONT = "Fonts\\ARHei.ttf"
-elseif LOCALE == "zhTW" then
-    -- Traditional Chinese
-    DEFAULT_FONT = "Fonts\\blei.ttf"
-elseif LOCALE == "koKR" then
-    -- Korean
-    DEFAULT_FONT = "Fonts\\2002.ttf"
-end
+local LSM = LibStub("LibSharedMedia-3.0")
+local DEFAULT_FONT = LSM:Fetch("font", LSM:GetDefault("font")) or "Fonts\\FRIZQT__.TTF"
 
 -- MARK: frame pool
 -- since the frame are created with some invariants, a global general frame pool is also not a good idea, even if each frame got released totally before added into framePools.

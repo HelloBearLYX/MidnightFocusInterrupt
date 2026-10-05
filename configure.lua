@@ -5,84 +5,12 @@ addon.LSM = LibStub("LibSharedMedia-3.0")
 addon.LSM:Register("sound", "[HBLyx] Notification", "Interface\\AddOns\\" .. ADDON_NAME .. "\\Media\\Sound\\notification.ogg")
 addon.LSM:Register("sound", "[HBLyx] Info", "Interface\\AddOns\\" .. ADDON_NAME .. "\\Media\\Sound\\info.ogg")
 addon.DEFAULTS = {
-	font = "Fonts\\FRIZQT__.TTF",
+	font = addon.LSM:Fetch("font", addon.LSM:GetDefault("font")) or "Fonts\\FRIZQT__.TTF",
 }
-
--- localization handler
-addon.Locale = GetLocale()
-if addon.Locale == "zhCN" then
-    -- Simplified Chinese
-	addon.DEFAULTS.font = "Fonts\\ARHei.ttf"
-elseif addon.Locale == "zhTW" then
-    -- Traditional Chinese
-	addon.DEFAULTS.font = "Fonts\\blei.ttf"
-elseif addon.Locale == "koKR" then
-    -- English
-	addon.DEFAULTS.font = "Fonts\\2002.ttf"
-end
-
----Show the RLNeeded popup dialog
----@param dialogName string dialog name
-function addon:ShowDialog(dialogName)
-	StaticPopup_Show(dialogName)
-end
-
----Handle option group order for options creations
--- ---@return integer order the order of this option group
--- function addon:OptionOrderHandler()
--- 	local output = optionOrder
--- 	optionOrder = optionOrder + 1
--- 	return output
--- end
-
--- function addon:AppendOptionsList(optionName, optionMap)
--- 	addon.optionsList[optionName] = optionMap
--- end
 
 -- MARK: Config set ups
 -- set up  configurationList
 addon.configurationList = {}
--- set up optionsList according to ACEConfig format
--- make the Test(Unlock) option at the beginning
-local optionsList = {
-	Welecome = {
-		type = "group",
-		name = "Welcome",
-		order = 1,
-		args = {
-			Welecome = {
-				type = "description",
-				name = L["WelecomeSetting"],
-				order = 1,
-			},
-			OpenMenu = {
-				type = "execute",
-				name = "|cff8788ee/mfi|r",
-				func = function()
-					addon.GUI:OpenGUI()
-				end,
-				order = 2,
-				width = "full",
-			},
-		},
-		inline = true,
-	},
-	-- DeveloperTools = {
-	-- 	type = "group",
-	-- 	name = "Developer Tools",
-	-- 	order = 2,
-	-- 	args = {
-	-- 		PrintInfo = {
-	-- 			type = "execute",
-	-- 			name = "Print Addon Info",
-	-- 			func = function()
-	-- 				addon.DeveloperTools:DisplayAddonInfo()
-	-- 			end,
-	-- 		},
-	-- 	},
-	-- 	inline = true,
-	-- },
-}
-addon.optionsList = optionsList
+
 --set up RLNeeded popup dialog
 addon.Utilities:SetPopupDialog(ADDON_NAME .. "RLNeeded", L["ReloadNeeded"], false, {button1 = L["Reload"], button2 = CLOSE, OnButton1 = ReloadUI})

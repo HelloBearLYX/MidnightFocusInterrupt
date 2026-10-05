@@ -15,7 +15,7 @@ addon.GUI = {
 -- MARK: Default values
 local PANEL_WIDTH = 855
 local PANEL_HEIGHT = 600
-local SIDEBAR_WIDTH = 155
+local SIDEBAR_WIDTH = 200
 local TOOLBAR_HEIGHT = 20
 local TOOLBAR_BUTTON_WIDTH = 155
 -- the toolbar window and the close button share this height, so they line up
