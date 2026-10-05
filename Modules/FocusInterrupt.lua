@@ -331,7 +331,7 @@ local function InterruptHandler(self, unit, guid)
 
     -- play a successful interrupt sound
     local sound = addon.LSM:Fetch("sound", addon.db[self.modName]["InterruptedSound"])
-    if sound then
+    if sound and not addon.db[self.modName]["Mute"] then
         PlaySoundFile(sound, addon.db[self.modName]["SoundChannel"] or "Master")
     end
 end
