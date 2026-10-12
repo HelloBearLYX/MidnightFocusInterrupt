@@ -142,7 +142,7 @@ end
 local function RenderToolbar(toolbar)
     local testButton = addon.UICore:Build("TextButton")
     testButton:SetSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_HEIGHT)
-    testButton:SetText(L["Test"])
+    testButton:SetText(L["EditMode"])
     testButton:SetOnClick(function() addon.core:TestMode() end)
     toolbar:AddWidget(testButton)
 

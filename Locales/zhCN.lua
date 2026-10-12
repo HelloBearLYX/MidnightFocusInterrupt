@@ -56,7 +56,7 @@ L["SoundChannel"] = {
 
 -- MARK: Config
 L["ConfigPanel"] = "打开配置面板"
-L["Test"] = "测试/解锁"
+L["EditMode"] = "编辑模式"
 L["Mute"] = "静音"
 L["Enable"] = "启用"
 L["SoundSettings"] = "声音设置"

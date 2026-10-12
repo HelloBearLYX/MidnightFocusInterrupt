@@ -76,7 +76,7 @@ local function InitializeConfig()
 		OnTooltipShow = function(tooltip)
 			tooltip:AddLine("|cff8788ee" .. ADDON_NAME .. "|r")
 			tooltip:AddLine(string.format("|cff00ff00%s|r: %s", L["LeftButton"], L["ConfigPanel"]))
-			tooltip:AddLine(string.format("|cff00ff00%s|r: %s", L["RightButton"], L["Test"]))
+			tooltip:AddLine(string.format("|cff00ff00%s|r: %s", L["RightButton"], L["EditMode"]))
 		end,
 	})
 	LibStub("LibDBIcon-1.0"):Register(ADDON_NAME, ldb, addon.db["MinimapIcon"])

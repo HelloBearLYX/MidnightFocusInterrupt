@@ -53,7 +53,7 @@ L["SoundChannel"] = {
 
 -- MARK: Config
 L["ConfigPanel"] = "Open Configurations Panel"
-L["Test"] = "Test/Unlock"
+L["EditMode"] = "Edit Mode"
 L["Mute"] = "Mute"
 L["Enable"] = "Enable"
 L["SoundSettings"] = "Sound Settings"
