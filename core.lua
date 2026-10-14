@@ -34,8 +34,6 @@ function Core:Initialize()
     return self
 end
 
--- private methods
-
 -- MARK: Event Handler
 
 ---Handle events
@@ -175,6 +173,7 @@ function Core:LoadModule(mod)
         end
         if self.modules[mod] and self.modules[mod].RegisterEvents then
             self.modules[mod]:RegisterEvents()
+            self.modules[mod].enabled = true -- add a field to the module to indicate whether the module is loaded, and this field is controlled by Core only
             self.loadedMods = self.loadedMods + 1
         end
         return true
@@ -361,7 +360,7 @@ end
 ---@param module string module key
 ---@return boolean success if the test mode is turned on after this call
 function Core:TestModule(module)
-    if self.modules[module] and self.modules[module].Test then
+    if self.modules[module] and self.modules[module].Test and self.modules[module].enabled then
         self.modules[module]:Test(self.testMode)
         return self.testMode
     end
@@ -375,6 +374,27 @@ end
 ---@return boolean on if the test mode is on
 function Core:IsTestOn()
     return self.testMode
+end
+
+-- MARK: Toggle Module
+
+---Toggle the module on or off
+function Core:ToggleModule(mod, on)
+    if on then
+        local success = self:LoadModule(mod)
+        self.modules[mod].enabled = true
+        self:TestModule(mod) -- also check whether turn the test mode for the module
+        return success
+    else
+        if self.modules[mod] and self.modules[mod].enabled then
+            self.modules[mod].enabled = false
+            if self.modules[mod].Test then
+                self.modules[mod]:Test(false) -- turn off the test mode for the module
+            end
+        end
+        self:ShowReloadPopup()
+        return true
+    end
 end
 
 -- MARK: Get Module List
@@ -396,6 +416,11 @@ function Core:Start()
     self.eventFrame:SetScript("OnEvent", function (_, event, ...)
         Handle(self, event, ...)
     end)
+end
+
+-- MARK:RL Popup
+function Core:ShowReloadPopup()
+    StaticPopup_Show(ADDON_NAME .. "RLNeeded")
 end
 
 -- MARK: Main-Initialize Core
