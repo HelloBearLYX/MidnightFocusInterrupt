@@ -53,6 +53,13 @@ addon.Utilities.FrameStrata = {
 	FULLSCREEN_DIALOG = "FULLSCREEN_DIALOG",
 }
 
+---@enum groupRole group role
+addon.Utilities.GroupRoles = {
+	TANK = L["GroupRole"]["TANK"],
+	HEALER = L["GroupRole"]["HEALER"],
+	DAMAGER = L["GroupRole"]["DAMAGER"],
+}
+
 -- MARK: print
 
 ---Use addon's identifier to print
@@ -196,7 +203,7 @@ local function InitializeEditFrame(frame, dbTable, xKey, yKey, anchorFrom, label
 	if not frame.editFrame then
 		local editFrame = CreateFrame("Frame", nil, frame, "BackdropTemplate")
 		editFrame:EnableMouse(true)
-		editFrame:SetFrameStrata("FULLSCREEN_DIALOG")
+		editFrame:SetFrameStrata("DIALOG")
 		editFrame:SetBackdrop({
 			bgFile = "Interface\\Buttons\\WHITE8x8",
 			edgeFile = "Interface\\Buttons\\WHITE8x8",
