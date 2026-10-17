@@ -24,8 +24,9 @@ local DEFAULT_WIDTH = 400
 local DEFAULT_HEIGHT = 300
 local CONTENT_INSET = 6
 local SCROLLBAR_WIDTH = 24
-local ROW_SPACING = 8
-local SCROLLBAR_THICKNESS = 10
+local ROW_SPACING = 10
+local SCROLLBAR_THICKNESS = 6
+local SCROLLBAR_THUMB_THICKNESS = SCROLLBAR_THICKNESS + 4
 local SCROLLBAR_THUMB_HEIGHT = 24
 local SCROLL_STEP = 24
 
@@ -112,7 +113,7 @@ function ScrollFrame:Create(parent, width, height)
 
     local scrollHandler = CreateFrame("ScrollFrame", nil, frame)
     scrollHandler:SetPoint("TOPLEFT", frame, "TOPLEFT", CONTENT_INSET, -CONTENT_INSET)
-    scrollHandler:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -SCROLLBAR_WIDTH, CONTENT_INSET)
+    scrollHandler:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, CONTENT_INSET)
     scrollHandler:EnableMouseWheel(true)
     scrollHandler:SetScript("OnMouseWheel", ScrollHandler_OnMouseWheel)
     scrollHandler.obj = widget
@@ -128,8 +129,8 @@ function ScrollFrame:Create(parent, width, height)
     addon.UICore:SetBorderColor(scrollBar)
     scrollBar:SetOrientation("VERTICAL")
     scrollBar:SetWidth(SCROLLBAR_THICKNESS)
-    scrollBar:SetPoint("TOPLEFT", scrollHandler, "TOPRIGHT", CONTENT_INSET, 0)
-    scrollBar:SetPoint("BOTTOMLEFT", scrollHandler, "BOTTOMRIGHT", CONTENT_INSET, 0)
+    scrollBar:SetPoint("TOPRIGHT", scrollHandler, "TOPRIGHT", -SCROLLBAR_THICKNESS, 0)
+    scrollBar:SetPoint("BOTTOMRIGHT", scrollHandler, "BOTTOMRIGHT", -SCROLLBAR_THICKNESS, 0)
     scrollBar:SetValueStep(1)
     scrollBar:SetObeyStepOnDrag(true)
     scrollBar:SetMinMaxValues(0, 0)
@@ -140,7 +141,7 @@ function ScrollFrame:Create(parent, width, height)
 
     local thumb = scrollBar:CreateTexture(nil, "OVERLAY")
     thumb:SetColorTexture(1, 1, 1, 1)
-    thumb:SetSize(SCROLLBAR_THICKNESS - 4, SCROLLBAR_THUMB_HEIGHT)
+    thumb:SetSize(SCROLLBAR_THUMB_THICKNESS, SCROLLBAR_THUMB_HEIGHT)
     scrollBar:SetThumbTexture(thumb)
 
     -- content
