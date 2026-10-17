@@ -750,6 +750,24 @@ function FocusInterrupt:UpdateFocusMacro()
     UpdateFocusMacro(self)
 end
 
+function FocusInterrupt:ToggleMarkNotification(value)
+    if value then
+        if not self.frame:IsEventRegistered("READY_CHECK") then
+            addon.core:RegisterEvent("READY_CHECK", self.frame, self.modName)
+            self.frame:SetScript("OnEvent", function(_, event, ...)
+                if event == "READY_CHECK" then
+                    NotifyKickMark(self)
+                end
+            end)
+        end
+    else
+        if self.frame:IsEventRegistered("READY_CHECK") then
+            addon.core:UnregisterEvent("READY_CHECK", self.frame, self.modName)
+            self.frame:SetScript("OnEvent", nil)
+        end
+    end
+end
+
 -- MARK: Test
 
 ---Test Mode for FocusInterrupt
@@ -894,12 +912,32 @@ function FocusInterrupt:RegisterEvents() -- for cast-start events
     end
 
     -- hook independent kick mark
-    addon.core:RegisterEvent("READY_CHECK", self.frame, self.modName)
-    self.frame:SetScript("OnEvent", function(_, event, ...)
-        if event == "READY_CHECK" then
-            NotifyKickMark(self)
-        end
-    end)
+    if addon.db[self.modName].EnabledMarkNotification then
+        addon.core:RegisterEvent("READY_CHECK", self.frame, self.modName)
+        self.frame:SetScript("OnEvent", function(_, event, ...)
+            if event == "READY_CHECK" then
+                NotifyKickMark(self)
+            end
+        end)
+    end
+end
+
+---Unregister events
+function FocusInterrupt:UnregisterEvents()
+    for unit, bar in pairs(self.bars) do
+        addon.core:UnregisterEvent("UNIT_SPELLCAST_START", bar, self.modName, unit)
+        addon.core:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_START", bar, self.modName, unit)
+        addon.core:UnregisterEvent("UNIT_SPELLCAST_STOP", bar, self.modName, unit)
+        addon.core:UnregisterEvent("UNIT_SPELLCAST_FAILED", bar, self.modName, unit)
+        addon.core:UnregisterEvent("UNIT_SPELLCAST_INTERRUPTED", bar, self.modName, unit)
+        addon.core:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_STOP", bar, self.modName, unit)
+    end
+    addon.core:UnregisterEvent("PLAYER_FOCUS_CHANGED", self.bars.focus, self.modName)
+    if self.bars.target then
+        addon.core:UnregisterEvent("PLAYER_TARGET_CHANGED", self.bars.target, self.modName)
+    end
+    addon.core:UnregisterStateMonitor("playerSpec", self.modName)
+    addon.core:UnregisterEvent("READY_CHECK", self.frame, self.modName)
 end
 
 -- MARK: Register Module

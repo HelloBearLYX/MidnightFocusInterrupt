@@ -50,6 +50,17 @@ end
 local function CreateGeneralPanel(container)
     addon.GUI:CreateInformationTag(container, L["WelecomeInfo"], "CENTER")
 
+    addon.GUI:CreateInlineGroup(container, L["ModulesOverview"])
+    addon.GUI:CreateInfoContainer(container, function()
+        local modules, count = addon.core:GetLoadedModulesList()
+        return L["LoadedModules"], tostring(count), table.concat(modules, ", ")
+    end)
+    addon.GUI:CreateInfoContainer(container, function()
+        local modules, count = addon.core:GetUnloadedModulesList()
+        return L["UnloadedModules"], tostring(count), table.concat(modules, ", ")
+    end)
+    container:NewRow()
+
     addon.GUI:CreateInlineGroup(container, L["Downloads/Update"])
     addon.GUI:CreateInformationTag(container, L["Release_Info"], "LEFT")
     for _, info in ipairs(LINKS) do
@@ -70,18 +81,6 @@ local function CreateGeneralPanel(container)
         CreateLink(container, info)
     end
     container:NewRow()
-
-    addon.GUI:CreateInlineGroup(container, L["ModulesOverview"])
-    local loadedModContent = "|cff8788ee" .. L["LoadedModules"] .. "|r"
-    local loadedModules, loadedModulesCount = addon.core:GetLoadedModulesList()
-    loadedModContent = loadedModContent .. "(" .. loadedModulesCount .. "): "
-    loadedModContent = loadedModContent .. table.concat(loadedModules, ", ")
-    addon.GUI:CreateInformationTag(container, loadedModContent, "LEFT")
-    local unloadedModContent = "|cff8788ee" .. L["UnloadedModules"] .. "|r"
-    local unloadedModules, unloadedModulesCount = addon.core:GetUnloadedModulesList()
-    unloadedModContent = unloadedModContent .. "(" .. unloadedModulesCount .. "): "
-    unloadedModContent = unloadedModContent .. table.concat(unloadedModules, ", ")
-    addon.GUI:CreateInformationTag(container, unloadedModContent, "LEFT")
 
     return container
 end
@@ -387,6 +386,18 @@ function addon.GUI:CreateInformationTag(parent, description, textJustification)
     if parent then parent:NewRow() end
 
     return text
+end
+
+---Create a read-only two line widget (label, content) whose text comes from a callback.
+---The callback runs every time the widget is built or reused from the pool.
+---@param parent table the container
+---@param callback fun(widget: table): string?, string?, string? returns label, content and tooltip
+---@return table widget
+function addon.GUI:CreateInfoContainer(parent, callback)
+    local info = addon.UICore:Build("InfoContainer")
+    info:SetCallback(callback)
+
+    return Attach(parent, info)
 end
 
 ---@param parent table the container

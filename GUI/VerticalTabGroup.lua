@@ -98,8 +98,8 @@ local function CreateSectionRow(container, y, info)
     return { separator = separator, title = title, height = SEPARATOR_HEIGHT + SECTION_TOP_SPACING + SECTION_TITLE_HEIGHT }
 end
 
----Build the content panel of a tab the first time it is selected, then just show it again
----so that its scroll position and widget values survive switching to another tab and back
+---Build the content panel of a tab every time it is selected, the previous panel was recycled by SelectTab
+---so that callback driven widgets always load fresh information
 local function ShowTabContent(widget, tab)
     if not tab.container then
         local container = addon.UICore:Build("ScrollFrame")
@@ -269,7 +269,8 @@ function VerticalTabGroup:SelectTab(index)
 
     local previous = self.selectedIndex and self.tabs[self.selectedIndex]
     if previous and previous.container then
-        previous.container:Hide()
+        addon.UICore:ReleaseToPool(previous.container)
+        previous.container = nil
     end
 
     self.selectedIndex = index

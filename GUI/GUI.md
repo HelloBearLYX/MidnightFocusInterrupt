@@ -24,6 +24,7 @@ It replaces AceGUI-3.0 for the addon's own panels while keeping a similar mental
 | `MultiDropdown.lua` | Dropdown variant with a set of selected keys |
 | `MediaDropdown.lua` | LibSharedMedia dropdowns: font, status bar texture and sound |
 | `TextRegion.lua` | Full width, auto height wrapped text |
+| `InfoContainer.lua` | Read-only bordered label and content lines loaded by a callback, with a tooltip |
 | `LineSeperator.lua` | Full width horizontal line which separates groups |
 
 
@@ -125,7 +126,7 @@ Note that `SetPoint` takes a **frame** as `relativeTo`, so pass `otherWidget.fra
 
 ### VerticalTabGroup
 
-A scrolling sidebar of tab buttons and section titles on the left, and the panel of the selected tab on the right. Panels are built on demand and recycled by `ClearTabs`.
+A scrolling sidebar of tab buttons and section titles on the left, and the panel of the selected tab on the right. The panel is rendered on demand each time a tab is selected: `SelectTab` recycles the previous panel (its `ScrollFrame` and all the widgets in it go back to their pools) and builds the new one, so callback driven widgets such as `InfoContainer` always load fresh information. Scroll position and uncommitted widget state are not kept across tab switches.
 
 ```lua
 local tabGroup = addon.UICore:Build("VerticalTabGroup")
@@ -147,9 +148,9 @@ tabGroup:Show()
 | `SetContentTopInset(inset)` | Space reserved above the content area |
 | `SetTitle(info)` | Builds or updates the title window above the sidebar, `nil` removes it |
 | `SetTabs(list, defaultIndex)` | Fills the sidebar, `Button` rows are selectable and `Text` rows are section titles |
-| `SelectTab(index)` | Shows the panel of a tab |
+| `SelectTab(index)` | Recycles the previous panel and renders the panel of a tab |
 | `SetOnTabSelected(fn)` | Callback `fn(info, index)` after a tab was selected |
-| `ClearTabs()` | Recycles the panels and hides the sidebar rows |
+| `ClearTabs()` | Recycles the current panel and hides the sidebar rows |
 
 #### Title window
 
@@ -325,6 +326,21 @@ container:AddWidget(line)
 ```
 
 `SetColor`, `SetThickness`, `SetSize`.
+
+### InfoContainer
+
+A read-only, bordered two line widget: the first line is the label, the second is the content. It has the standard width (200) and a fixed height, so there is `SetWidth` but no `SetHeight`/`SetSize`. The height follows the font size, change both with `SetFontSize`. Text is single line and cut off at the width.
+
+The text comes from a callback which returns `label, content, tooltip` (any of them may be `nil` to keep the current value). The callback runs when the widget is built or re-used from the pool, and the tooltip is shown on hover, anchored to the cursor.
+
+```lua
+GUI:CreateInfoContainer(container, function()
+    local modules, count = addon.core:GetLoadedModulesList()
+    return L["LoadedModules"], tostring(count), table.concat(modules, ", ")
+end)
+```
+
+`SetCallback` (stores and runs it), `Refresh`, `SetLabel`, `SetContent`, `GetContent`, `SetTooltip`, `SetFontSize`, `SetWidth`.
 
 ## Shared behavior
 

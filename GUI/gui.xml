@@ -11,6 +11,7 @@
   <Script file="MultiDropdown.lua"/>
   <Script file="MediaDropdown.lua"/>
   <Script file="TextRegion.lua"/>
+  <Script file="InfoContainer.lua"/>
   <Script file="LineSeperator.lua"/>
   <Script file="Window.lua"/>
   <Script file="VerticalTabGroup.lua"/>

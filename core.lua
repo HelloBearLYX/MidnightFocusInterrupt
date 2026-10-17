@@ -93,6 +93,31 @@ function Core:RegisterEvent(event, frame, mod, unit)
     end
 end
 
+-- MARK: Unregister Event
+
+---Call to let Manager unregister this event for the module
+---@param event string event name
+---@param frame frame the frame used to hook the event
+---@param mod string module name/key
+function Core:UnregisterEvent(event, frame, mod)
+    frame:UnregisterEvent(event)
+
+    local info = self.eventMap[event]
+    if not info then
+        return
+    end
+
+    for i = #info.mods, 1, -1 do
+        if info.mods[i] == mod then
+            table.remove(info.mods, i)
+        end
+    end
+
+    if #info.mods == 0 then
+        self.eventMap[event] = nil
+    end
+end
+
 -- MARK: Register State
 
 ---Register addon state to the core
@@ -136,6 +161,17 @@ function Core:RegisterStateMonitor(stateName, moduleName, monitorFunc)
     self.statesMonitor[stateName][moduleName] = monitorFunc
 end
 
+-- MARK: Unregister State Monitor
+
+---Unregister a module from an addon state
+---@param stateName string name(key) of the addon state
+---@param moduleName string name(key) of the module
+function Core:UnregisterStateMonitor(stateName, moduleName)
+    if self.statesMonitor[stateName] then
+        self.statesMonitor[stateName][moduleName] = nil
+    end
+end
+
 -- MARK: Register Module
 
 ---Register module to the manager(not initialized so far)
@@ -153,7 +189,7 @@ end
 ---@param mod string module key
 ---@return boolean if the module is loaded
 function Core:HasModuleLoaded(mod)
-    return self.modules[mod] ~= nil
+    return self.modules[mod] and self.modules[mod].enabled
 end
 
 -- MARK: Load module
@@ -171,13 +207,37 @@ function Core:LoadModule(mod)
             addon.Utilities:print(string.format("|cffff0000%s failed to load|r: %s", mod, tostring(result)))
             return false
         end
+        self.modules[mod].enabled = true -- add a field to the module to indicate whether the module is loaded, and this field is controlled by Core only
         if self.modules[mod] and self.modules[mod].RegisterEvents then
             self.modules[mod]:RegisterEvents()
-            self.modules[mod].enabled = true -- add a field to the module to indicate whether the module is loaded, and this field is controlled by Core only
             self.loadedMods = self.loadedMods + 1
         end
         return true
     elseif loadedAlready then -- if the module is already loaded, it has been loaded
+        return true
+    end
+
+    return false
+end
+
+---Unload a module (disable it and unregister its events)
+---@param mod string module key
+---@return boolean if the module was successfully unloaded
+function Core:UnloadModule(mod)
+    if self:HasModuleLoaded(mod) then
+        -- do not remove the module instance from the core, only disable it and unregister its events
+        self.modules[mod].enabled = false
+
+        if self.modules[mod] and self.modules[mod].UnregisterEvents then
+            self.modules[mod]:UnregisterEvents()
+        end
+
+        if self.modules[mod].Test then
+            self.modules[mod]:Test(false) -- turn off the test mode for the module
+        end
+
+        self.loadedMods = self.loadedMods - 1
+
         return true
     end
 
@@ -218,11 +278,13 @@ end
 ---@return table, number output list of loaded modules, count of loaded modules
 function Core:GetLoadedModulesList(useKey)
     local output = {}
-    for mod, _ in pairs(self.modules) do
-        if useKey then
-            table.insert(output, mod)
-        else
-            table.insert(output, self.registeredMods[mod].name)
+    for mod, modInstance in pairs(self.modules) do
+        if modInstance.enabled then
+            if useKey then
+                table.insert(output, mod)
+            else
+                table.insert(output, self.registeredMods[mod].name)
+            end
         end
     end
 
@@ -386,14 +448,9 @@ function Core:ToggleModule(mod, on)
         self:TestModule(mod) -- also check whether turn the test mode for the module
         return success
     else
-        if self.modules[mod] and self.modules[mod].enabled then
-            self.modules[mod].enabled = false
-            if self.modules[mod].Test then
-                self.modules[mod]:Test(false) -- turn off the test mode for the module
-            end
-        end
+        local success = self:UnloadModule(mod)
         self:ShowReloadPopup()
-        return true
+        return success
     end
 end
 
