@@ -13,6 +13,7 @@ It replaces AceGUI-3.0 for the addon's own panels while keeping a similar mental
 | `UICore.lua` | Widget registry, frame pools, shared backdrop/color helpers, hover helper, color cycle, row layout math |
 | `ScrollFrame.lua` | Scrollable container |
 | `Window.lua` | Plain (non scrolling) container with a title |
+| `VerticalTabGroup.lua` | Sidebar of tab buttons next to a content area, with an optional title window above the sidebar |
 | `TextButton.lua` | Clickable button with a centered label |
 | `ToggleBox.lua` | Check box with a label on the right |
 | `Slider.lua` | Labelled slider with a value edit box |
@@ -121,6 +122,40 @@ window:Show()
 ```
 
 Note that `SetPoint` takes a **frame** as `relativeTo`, so pass `otherWidget.frame`.
+
+### VerticalTabGroup
+
+A scrolling sidebar of tab buttons and section titles on the left, and the panel of the selected tab on the right. Panels are built on demand and recycled by `ClearTabs`.
+
+```lua
+local tabGroup = addon.UICore:Build("VerticalTabGroup")
+tabGroup:SetParent(root)
+tabGroup:SetSidebarWidth(200)
+tabGroup:SetTitle({ icon = "Interface\\AddOns\\MyAddon\\icon.png", title = "MyAddon", subtitle = "v1.0", height = 30 })
+tabGroup:SetContentTopInset(30)   -- e.g. a toolbar drawn above the content area
+tabGroup:SetSize(1055, 630)
+tabGroup:SetTabs({
+    { text = "Section", type = "Text" },
+    { text = "General", type = "Button", panelFunction = function(container) end },
+})
+tabGroup:Show()
+```
+
+| Method | Effect |
+| --- | --- |
+| `SetSidebarWidth(width)` | Width of the sidebar, defaults to 155 |
+| `SetContentTopInset(inset)` | Space reserved above the content area |
+| `SetTitle(info)` | Builds or updates the title window above the sidebar, `nil` removes it |
+| `SetTabs(list, defaultIndex)` | Fills the sidebar, `Button` rows are selectable and `Text` rows are section titles |
+| `SelectTab(index)` | Shows the panel of a tab |
+| `SetOnTabSelected(fn)` | Callback `fn(info, index)` after a tab was selected |
+| `ClearTabs()` | Recycles the panels and hides the sidebar rows |
+
+#### Title window
+
+`SetTitle` takes `{ icon, title, subtitle, height }`. It builds a `Window` right above the sidebar once, only when a title is needed, holding an icon of full height and two game `FontString`s on its right: the first line is the title, the second is the subtitle. Calling it again only updates the icon and the texts. `SetTitle()` (or `Release`) removes the window.
+
+The sidebar is shortened by the title height, so the title window plus the sidebar always add up to the height of the group. This lines up with the content area, which is shortened by `SetContentTopInset`. The window is exposed as `tabGroup.titleWindow`, for example to add a drag handle.
 
 ## Widgets
 

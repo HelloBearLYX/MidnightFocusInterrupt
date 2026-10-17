@@ -4,6 +4,7 @@ local addon = select(2, ...)
 ---@field type string widget type
 ---@field frame Frame the frame which bounds both the sidebar and the content area
 ---@field sidebar table the ScrollFrame widget which lists the tab buttons and section titles
+---@field titleWindow table? the Window above the sidebar, only built by SetTitle
 ---@field contentHolder Frame the frame the per-tab content panels are anchored into
 ---@field tabs table the ordered list of {info, row, container} built by SetTabs
 ---@field selectedIndex number? the index into tabs which is currently shown
@@ -20,6 +21,10 @@ local VerticalTabGroup = {
 local DEFAULT_WIDTH = 400
 local DEFAULT_HEIGHT = 300
 local DEFAULT_SIDEBAR_WIDTH = 155
+local DEFAULT_TITLE_HEIGHT = 30
+local TITLE_PADDING = 2
+local TITLE_FONT_SIZE = 12
+local SUBTITLE_FONT_SIZE = 10
 local TAB_ROW_HEIGHT = 22
 local ROW_SPACING = 2
 local INDICATOR_WIDTH = 3
@@ -154,13 +159,17 @@ function VerticalTabGroup:Hide()
     self.frame:Hide()
 end
 
----The sidebar spans the full height, the content area is inset from the top (e.g. for a toolbar above it)
+---The sidebar and the content area are each inset from the top (e.g. for a title or toolbar above them)
 function VerticalTabGroup:SetSize(width, height)
     width = width or DEFAULT_WIDTH
     height = height or DEFAULT_HEIGHT
 
     self.frame:SetSize(width, height)
-    self.sidebar:SetSize(self.sidebarWidth, height)
+    self.sidebar:SetSize(self.sidebarWidth, height - self.sidebarTopInset)
+    self.sidebar:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 0, -self.sidebarTopInset)
+    if self.titleWindow then
+        self.titleWindow:SetSize(self.sidebarWidth, self.sidebarTopInset)
+    end
 
     local contentWidth = width - self.sidebarWidth
     local contentHeight = height - self.contentTopInset
@@ -184,6 +193,65 @@ end
 ---Reserve space on the left for the tab buttons, defaults to 155
 function VerticalTabGroup:SetSidebarWidth(width)
     self.sidebarWidth = width or DEFAULT_SIDEBAR_WIDTH
+    self:SetSize(self.frame:GetWidth(), self.frame:GetHeight())
+end
+
+---Build the title window right above the sidebar: an icon of full height with two lines of text on its right.
+---The window is only built once a title is needed.
+---@param info table? {icon = texture path, title = first line, subtitle = second line, height = window height}, nil removes the window
+function VerticalTabGroup:SetTitle(info)
+    if not info then
+        if self.titleWindow then
+            -- the regions live in a plain child frame, so that they leave with it instead of staying on the pooled window
+            self.titleHolder:Hide()
+            self.titleHolder:SetParent(nil)
+            addon.UICore:ReleaseToPool(self.titleWindow)
+            self.titleWindow, self.titleHolder = nil, nil
+            self.titleIcon, self.titleText, self.subtitleText = nil, nil, nil
+        end
+        self.sidebarTopInset = 0
+    else
+        local height = info.height or DEFAULT_TITLE_HEIGHT
+        local iconSize = height - 2 * TITLE_PADDING
+        local lineHeight = iconSize / 2
+
+        if not self.titleWindow then
+            local titleWindow = addon.UICore:Build("Window")
+            titleWindow:SetParent(self.frame)
+            titleWindow:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 0, 0)
+
+            local holder = CreateFrame("Frame", nil, titleWindow.frame)
+            holder:SetAllPoints(titleWindow.frame)
+
+            local icon = holder:CreateTexture(nil, "ARTWORK")
+            icon:SetPoint("LEFT", holder, "LEFT", TITLE_PADDING, 0)
+
+            local title = holder:CreateFontString(nil, "OVERLAY")
+            title:SetPoint("TOPLEFT", icon, "TOPRIGHT", TITLE_PADDING, 0)
+            title:SetPoint("RIGHT", holder, "RIGHT", -TITLE_PADDING, 0)
+            title:SetJustifyH("LEFT")
+            title:SetFont(addon.UICore:GetDefaultFont(), TITLE_FONT_SIZE, "OUTLINE")
+
+            local subtitle = holder:CreateFontString(nil, "OVERLAY")
+            subtitle:SetPoint("BOTTOMLEFT", icon, "BOTTOMRIGHT", TITLE_PADDING, 0)
+            subtitle:SetPoint("RIGHT", holder, "RIGHT", -TITLE_PADDING, 0)
+            subtitle:SetJustifyH("LEFT")
+            subtitle:SetFont(addon.UICore:GetDefaultFont(), SUBTITLE_FONT_SIZE, "OUTLINE")
+
+            titleWindow:Show()
+            self.titleWindow, self.titleHolder = titleWindow, holder
+            self.titleIcon, self.titleText, self.subtitleText = icon, title, subtitle
+        end
+
+        self.titleIcon:SetSize(iconSize, iconSize)
+        self.titleIcon:SetTexture(info.icon)
+        self.titleText:SetHeight(lineHeight)
+        self.titleText:SetText(info.title or "")
+        self.subtitleText:SetHeight(lineHeight)
+        self.subtitleText:SetText(info.subtitle or "")
+        self.sidebarTopInset = height
+    end
+
     self:SetSize(self.frame:GetWidth(), self.frame:GetHeight())
 end
 
@@ -257,7 +325,7 @@ function VerticalTabGroup:SetTabs(tabList, defaultIndex)
         if info.type == "Button" then
             tab.row = CreateTabButtonRow(self, container, y, info, i)
             firstSelectable = firstSelectable or i
-        else
+        else -- text only rows
             tab.row = CreateSectionRow(container, y, info)
         end
 
@@ -276,6 +344,7 @@ function VerticalTabGroup:Release()
     self.onTabSelected = nil
     self:ClearTabs()
     self:SetSidebarWidth()
+    self:SetTitle()
     self:SetContentTopInset()
     self:SetSize()
     self:SetPosition()
@@ -312,6 +381,7 @@ function VerticalTabGroup:Create(parent, width, height)
     widget.selectedIndex = nil
     widget.sidebarWidth = DEFAULT_SIDEBAR_WIDTH
     widget.contentTopInset = 0
+    widget.sidebarTopInset = 0
     widget.type = VerticalTabGroup.type
 
     widget:SetSize(width, height)

@@ -4,7 +4,8 @@ local L = LibStub("AceLocale-3.0"):NewLocale(ADDON_NAME, "enUS", true)
 L["Welecome"] = "|cff8788ee" .. ADDON_NAME .. "|r: Welcome! Your profile has been initialized, and you can set up with: /mfi"
 L["WelecomeInfo"] = "Welecome! Thank you for using |cff8788ee" .. ADDON_NAME .. "|r!"
 L["WelecomeSetting"] = "You can change settings with \"|cff8788ee/mfi|r\""
-L["GUITitle"] = "%s" .. ADDON_NAME .. "|r v%s"
+L["GUITitle"] = "%s" .. ADDON_NAME .. "|r"
+L["GUIVersion"] = "v%s"
 L["Notifications"] = "Notifications"
 L["NotificationContent"] =
 	"The GUI of Configurations panel is totally re-built from scratch and independent from AceGUI\n" ..

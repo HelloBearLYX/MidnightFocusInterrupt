@@ -755,14 +755,6 @@ end
 ---Test Mode for FocusInterrupt
 ---@param on boolean turn the Test mode on or off
 function FocusInterrupt:Test(on)
-    if addon.db[self.modName]["Hidden"] then
-        for unit, _ in pairs(self.bars) do
-            ActivateComponent(self, false, unit)
-            self.bars[unit].active = false
-        end
-        return
-    end
-
     local function TestBar(unit)
         -- generate a demo cast bar
         self.bars[unit].active = true

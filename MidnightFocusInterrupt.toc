@@ -2,7 +2,7 @@
 ## Title: |cff8788eeMidnightFocusInterrupt|r
 ## Notes: Focus Cast Bar Replacement which integrated with Interrupt Ready and Interruptible filter which greatly helps accuracy of interrupts
 ## Author: HBLyx
-## OptionalDeps: LibSharedMedia-3.0, AceConfig-3.0
+## OptionalDeps: LibSharedMedia-3.0
 ## Version: 4.6.1
 ## SavedVariables: MidnightFocusInterrupt_DB
 ## IconTexture: Interface\AddOns\MidnightFocusInterrupt\Media\HBLyx.png

@@ -27,6 +27,7 @@ local WIDGET_WIDTH = 220
 local CLOSE_BUTTON_SIZE = TOOLBAR_FRAME_HEIGHT
 local HIGHLIGHT_TEXT_COLOR = "|c" .. addon.Utilities:RGBToHex(unpack(addon.UICore:GetHighlightColor()))
 local CLOSE_BUTTON_TEXTURE = "Interface\\AddOns\\MidnightFocusInterrupt\\GUI\\Assets\\Close_Button.png"
+local TITLE_ICON_TEXTURE = "Interface\\AddOns\\MidnightFocusInterrupt\\Media\\HBLyx.png"
 
 -- MARK: General Panel
 
@@ -177,14 +178,6 @@ local function BuildGUI(self)
     AddDragHandle(toolbar.frame, root)
     self.toolbar = toolbar
 
-    -- anchored above the toolbar instead of laid out as a row widget, so it never competes for row space
-    local title = toolbar.frame:CreateFontString(nil, "OVERLAY")
-    title:SetFont(addon.DEFAULTS.font, 24, "OUTLINE")
-    title:SetTextColor(1, 1, 1, 1)
-    title:SetText(string.format(L["GUITitle"], HIGHLIGHT_TEXT_COLOR, addon:GetVersion()))
-    title:SetPoint("BOTTOM", toolbar.frame, "TOP", 0, 0)
-    self.title = title
-
     local close = CreateFrame("Button", nil, toolbar.frame, "BackdropTemplate")
     close:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8x8",
@@ -224,16 +217,23 @@ local function BuildGUI(self)
     addon.UICore:BuildHover(developerButton)
     self.developerButton = developerButton
 
-    -- the sidebar spans the full height, the content area sits below the toolbar
+    -- the title window sits above the sidebar, the toolbar above the content area
     local tabGroup = addon.UICore:Build("VerticalTabGroup")
     tabGroup:SetParent(root)
     tabGroup:SetSidebarWidth(SIDEBAR_WIDTH)
+    tabGroup:SetTitle({
+        icon = TITLE_ICON_TEXTURE,
+        title = string.format(L["GUITitle"], HIGHLIGHT_TEXT_COLOR),
+        subtitle = string.format(L["GUIVersion"], addon:GetVersion()),
+        height = TOOLBAR_FRAME_HEIGHT,
+    })
     tabGroup:SetContentTopInset(TOOLBAR_FRAME_HEIGHT)
     tabGroup:SetSize(SIDEBAR_WIDTH + PANEL_WIDTH, PANEL_HEIGHT + TOOLBAR_FRAME_HEIGHT)
     tabGroup:SetPoint("TOPLEFT", root, "TOPLEFT", 0, 0)
     tabGroup:SetTabs(TABS)
     tabGroup:Show()
     AddDragHandle(tabGroup.sidebar.frame, root)
+    AddDragHandle(tabGroup.titleWindow.frame, root)
     self.tabGroup = tabGroup
 end
 
