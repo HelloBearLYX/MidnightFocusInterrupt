@@ -84,6 +84,7 @@ L["LeftButton"] = "左键"
 L["RightButton"] = "右键"
 L["HideMinimapIcon"] = "隐藏小地图图标"
 L["HideIfFriendly"] = "友方则隐藏"
+L["GeneralMacroSlotsFull"] = "无法创建宏：通用宏栏位已满 - "
 
 -- MARK: Style
 L["StyleSettings"] = "样式设置"

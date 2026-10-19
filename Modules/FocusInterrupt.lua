@@ -105,6 +105,8 @@ local function UpdateFocusMacro(self)
     local index = GetMacroIndexByName(FOCUS_MACRO_NAME)
     if index and index > 0 then
         EditMacro(index, FOCUS_MACRO_NAME, FOCUS_MACRO_ICON, body)
+    elseif GetNumMacros() >= MAX_ACCOUNT_MACROS then
+        addon.Utilities:print(L["GeneralMacroSlotsFull"] .. FOCUS_MACRO_NAME)
     else
         CreateMacro(FOCUS_MACRO_NAME, FOCUS_MACRO_ICON, body)
     end

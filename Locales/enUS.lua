@@ -81,6 +81,7 @@ L["LeftButton"] = "Left Click"
 L["RightButton"] = "Right Click"
 L["HideMinimapIcon"] = "Hide Minimap Icon"
 L["HideIfFriendly"] = "Hide if Friendly"
+L["GeneralMacroSlotsFull"] = "Unable to create macro: general macro slots are full - "
 
 -- MARK: Style
 L["StyleSettings"] = "Style Settings"
