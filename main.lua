@@ -1,6 +1,3 @@
----@class MidnightFocusInterrupt: AceAddon
-MidnightFocusInterrupt = LibStub("AceAddon-3.0"):NewAddon("MidnightFocusInterrupt")
-
 local ADDON_NAME, addon = ...
 local L = LibStub("AceLocale-3.0"):GetLocale(ADDON_NAME)
 
