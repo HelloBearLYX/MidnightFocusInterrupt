@@ -716,8 +716,12 @@ function FocusInterrupt:CreateBar()
 
     -- set kick spark
     bar.kickSpark = CreateFrame("StatusBar", nil, bar)
-    bar.kickSpark:SetStatusBarTexture("Interface\\AddOns\\" .. ADDON_NAME .. "\\Media\\transparent.png")
+    bar.kickSpark:SetStatusBarTexture("Interface\\Buttons\\WHITE8x8")
+    bar.kickSpark:GetStatusBarTexture():SetAlpha(0)
     bar.kickSpark.texture = bar.kickSpark:CreateTexture(nil, "OVERLAY")
+    -- ensure the kick spark does not draw outside its bounds
+    -- since the secret values cannot be compared, just clip the children elements out of bounds
+    bar.kickSpark:SetClipsChildren(true)
 
     return bar
 end
