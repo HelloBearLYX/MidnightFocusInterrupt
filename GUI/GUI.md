@@ -19,7 +19,8 @@ It replaces AceGUI-3.0 for the addon's own panels while keeping a similar mental
 | `Slider.lua` | Labelled slider with a value edit box |
 | `EditBox.lua` | Labelled text input with an accept button |
 | `MultiLineEditBox.lua` | Labelled, scrollable multi line input with an accept button |
-| `ColorPicker.lua` | Labelled color swatch which opens the game color picker |
+| `ColorPickerPopup.lua` | The single shared color picker panel (saturation/value pad, hue and alpha bars, hex and opacity inputs), created once and reached through `UICore:GetColorPicker()` |
+| `ColorPicker.lua` | Labelled color swatch which opens the color picker popup |
 | `Dropdown.lua` | Labelled selection button with a pullout list |
 | `MultiDropdown.lua` | Dropdown variant with a set of selected keys |
 | `MediaDropdown.lua` | LibSharedMedia dropdowns: font, status bar texture and sound |
@@ -231,7 +232,20 @@ box:SetOnEnterPressed(function(widget, text) addon:ImportProfile(text) end)
 
 ### ColorPicker
 
-A small bordered color swatch on the left with the label beside it, matching the layout of `ToggleBox`. Clicking the swatch opens the game color picker, with alpha when `SetHasAlpha(true)` is set. The hex helpers match how colors are stored in the database.
+A small bordered color swatch on the left with the label beside it, matching the layout of `ToggleBox`. Clicking the swatch borrows the shared panel from `UICore:GetColorPicker()` (see below), with alpha when `SetHasAlpha(true)` is set. The panel calls back on every change, restores the starting color on cancel, close, Escape or a click outside, and keeps no recent or favorite colors.
+
+Any widget can use the shared panel directly. Opening it for another caller closes the previous session without reverting it:
+
+```lua
+addon.UICore:GetColorPicker():Open({
+    r = 1, g = 0, b = 0, a = 1,
+    hasAlpha = true,
+    onChange = function(r, g, b, a) end,   -- every change, and the starting color on cancel
+    onClose = function() end,              -- optional, once the panel is hidden
+}, anchorFrame)
+```
+
+The hex helpers match how colors are stored in the database.
 
 ```lua
 local color = addon.UICore:Build("ColorPicker")
@@ -244,6 +258,15 @@ end)
 ```
 
 `SetLabel`, `SetColor(r, g, b, a)`, `GetColor`, `SetHexColor`, `GetHexColor`, `SetHasAlpha`, `SetDisabled`, `SetOnColorChanged`, `SetOnEnter`, `SetOnLeave`.
+
+#### Shared color picker panel
+
+The panel is not a pooled widget: `ColorPickerPopup.lua` builds one fixed panel when the GUI loads and `UICore:GetColorPicker()` returns it. `Open` loads the caller's color and callbacks, anchors the panel next to the given frame and shows it.
+
+- Controls: saturation/value pad with a crosshair cursor, hue bar, alpha bar and Opacity input (only with `hasAlpha`), Hex# input, New and Prev previews (clicking Prev restores the starting color), OK and Cancel.
+- The right column always reserves the Opacity space, so the layout does not shift between alpha and non alpha pickers.
+- The row of preset color buttons at the bottom is driven by `PRESET_COLORS` in `ColorPickerPopup.lua` (`{r, g, b}`, 0 to 1): black, Priest white and the other class colors. The buttons are squares sized to the popup width.
+- It closes through OK, Cancel, the close button, Escape inside an input, or a click outside it. Everything except OK restores the starting color.
 
 ### Dropdown
 
@@ -385,3 +408,14 @@ Store callbacks on the widget (`self.onClick`, `self.onValueChanged`, ...) inste
 | Spacing | 8px between widgets and rows, 6px container inset |
 
 `UICore:GetNextColorCycle()` and `UICore:ResetColorCycle()` provide a fixed, readable color cycle for content that needs to be visually grouped.
+
+## Changelog
+
+### 2026-10-27
+- Replaced the Blizzard `ColorPickerFrame` with a custom color picker: new `ColorPickerPopup.lua`, loaded before `ColorPicker.lua` in `gui.xml`.
+- The picker is one fixed panel created once with the GUI and shared through `UICore:GetColorPicker()`. Widgets call `Open(info, anchor)` to borrow it. It is not part of the frame pools.
+- `ColorPicker` now opens the shared panel; its public API is unchanged.
+- Layout: saturation/value pad, hue bar, optional alpha bar, New/Prev previews, Hex# and Opacity inputs, OK and Cancel. The Opacity space is always reserved on the right and the controls sit closer to the title bar.
+- Added a bottom row of preset color buttons (`PRESET_COLORS`: black, Priest white and the other class colors).
+- The pad cursor is a four line crosshair, as in EllesmereUI.
+- Clicking outside the picker cancels it, as in EllesmereUI. It keeps no recent or favorite colors.

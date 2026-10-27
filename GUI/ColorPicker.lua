@@ -39,26 +39,14 @@ local function FireChanged(widget)
 end
 
 local function OpenPicker(widget)
-    local r, g, b, a = widget.r, widget.g, widget.b, widget.a
-
-    local function Apply()
-        local newR, newG, newB = ColorPickerFrame:GetColorRGB()
-        local newA = widget.hasAlpha and ColorPickerFrame:GetColorAlpha() or 1
-        widget:SetColor(newR, newG, newB, newA)
-        FireChanged(widget)
-    end
-
-    ColorPickerFrame:SetupColorPickerAndShow({
-        r = r, g = g, b = b,
-        opacity = a,
-        hasOpacity = widget.hasAlpha,
-        swatchFunc = Apply,
-        opacityFunc = Apply,
-        cancelFunc = function()
+    addon.UICore:GetColorPicker():Open({
+        r = widget.r, g = widget.g, b = widget.b, a = widget.a,
+        hasAlpha = widget.hasAlpha,
+        onChange = function(r, g, b, a)
             widget:SetColor(r, g, b, a)
             FireChanged(widget)
         end,
-    })
+    }, widget.swatchBox)
 end
 
 -- MARK: Script handlers
