@@ -29,7 +29,7 @@ GUI:RegisterModule("Profile", RenderPanel)
 function addon:ExportProfile()
     local profile = addon.db["FocusInterrupt"]
     if not profile then
-        addon.Utilities:print("No profile data to export.")
+        addon.Utility:print("No profile data to export.")
         return nil
     end
 
@@ -52,12 +52,12 @@ function addon:ImportProfile(data)
     local success, profileData = Serialize:Deserialize(decompressedData)
 
     if not success or type(profileData) ~= "table" or data:sub(1, #prefix) ~= prefix then
-        addon.Utilities:print("Invalid profile data.")
+        addon.Utility:print("Invalid profile data.")
         return false
     end
 
     addon.db["FocusInterrupt"] = profileData["FocusInterrupt"]
-    addon.Utilities:print(L["ImportSuccess"])
+    addon.Utility:print(L["ImportSuccess"])
 
     return true
 end

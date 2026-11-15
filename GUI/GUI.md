@@ -333,7 +333,7 @@ text:SetText("|TInterface\\Icons\\INV_Misc_QuestionMark:16:16|t A long descripti
 
 local link = addon.UICore:Build("TextRegion")
 link:SetText("|cff8080FFCurseForge|r")
-link:SetOnClick(function() addon.Utilities:OpenURL("CurseForge", url) end)
+link:SetOnClick(function() addon.Utility:OpenURL("CurseForge", url) end)
 ```
 
 `SetText`, `GetText`, `SetFontSize`, `SetColor`, `SetJustifyH`, `SetJustifyV`, `SetWidth`, `SetOnClick`, `SetOnEnter`, `SetOnLeave`.

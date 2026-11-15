@@ -4,7 +4,7 @@ local GUI = addon.GUI
 local MOD_KEY = "FocusInterrupt"
 
 -- MARK: Defaults
-addon.configurationList[MOD_KEY] = {
+addon.core:RegisterDBDefaults(MOD_KEY, {
     Enabled = true,
     Mute = false,
     EnabledMarkNotification = true,
@@ -62,7 +62,7 @@ addon.configurationList[MOD_KEY] = {
     targetY = 160,
     targetIconZoom = 0.07,
     targetHideFriendly = false,
-}
+})
 
 -- MARK: Safe update
 local function update()
@@ -93,7 +93,7 @@ local function RenderPanel(parent)
         addon.db.FocusInterrupt.EnabledMarkNotification = value
         addon.core:GetModule(MOD_KEY):ToggleMarkNotification(value)
     end)
-    GUI:CreateDropdown(interruptGroup, L["KickMark"], addon.Utilities.RaidMarkers, nil, addon.db.FocusInterrupt.KickMark, function(value)
+    GUI:CreateDropdown(interruptGroup, L["KickMark"], addon.Utility.RaidMarkers, nil, addon.db.FocusInterrupt.KickMark, function(value)
         addon.db.FocusInterrupt.KickMark = value
         local mod = addon.core:GetModule(MOD_KEY)
         if mod then
@@ -187,7 +187,7 @@ local function RenderPanel(parent)
         addon.db.FocusInterrupt.KickIconY = value
         update()
     end)
-    local growDropdown = GUI:CreateDropdown(nil, L["Grow"], addon.Utilities.Grows, nil, addon.db.FocusInterrupt.KickIconGrow, function(value)
+    local growDropdown = GUI:CreateDropdown(nil, L["Grow"], addon.Utility.Grows, nil, addon.db.FocusInterrupt.KickIconGrow, function(value)
         addon.db.FocusInterrupt.KickIconGrow = value
         update()
     end)
@@ -220,7 +220,7 @@ local function RenderPanel(parent)
     local interruptedSoundSelect = GUI:CreateSoundSelect(nil, L["InterruptedSound"], addon.db.FocusInterrupt.InterruptedSound, function(value)
         addon.db.FocusInterrupt.InterruptedSound = value
     end)
-    local soundChannelDropdown = GUI:CreateDropdown(nil, L["SoundChannelSettings"], addon.Utilities.SoundChannels, nil, addon.db.FocusInterrupt.SoundChannel, function(value)
+    local soundChannelDropdown = GUI:CreateDropdown(nil, L["SoundChannelSettings"], addon.Utility.SoundChannels, nil, addon.db.FocusInterrupt.SoundChannel, function(value)
         addon.db.FocusInterrupt.SoundChannel = value
     end)
     GUI:CreateToggleCheckBox(soundGroup, L["Mute"], addon.db.FocusInterrupt.Mute, function(value)

@@ -106,7 +106,7 @@ local function UpdateFocusMacro(self)
     if index and index > 0 then
         EditMacro(index, FOCUS_MACRO_NAME, FOCUS_MACRO_ICON, body)
     elseif GetNumMacros() >= 120 then
-        addon.Utilities:print(L["GeneralMacroSlotsFull"] .. FOCUS_MACRO_NAME)
+        addon.Utility:print(L["GeneralMacroSlotsFull"] .. FOCUS_MACRO_NAME)
     else
         CreateMacro(FOCUS_MACRO_NAME, FOCUS_MACRO_ICON, body)
     end
@@ -245,7 +245,7 @@ end
 ---Update kick icons, make sure icons are instantialized before use this
 ---@param self FocusInterrupt self
 local function UpdateKickIconsStyle(self)
-    local anchorFrom, anchorTo = addon.Utilities:GetGrowAnchors(addon.db[self.modName]["KickIconGrow"])
+    local anchorFrom, anchorTo = addon.Utility:GetGrowAnchors(addon.db[self.modName]["KickIconGrow"])
     local iconSize = addon.db[self.modName]["KickIconSize"]
     local zoom = addon.db[self.modName]["focusIconZoom"]
     local isVertical = addon.db[self.modName]["KickIconGrow"] == "UP" or addon.db[self.modName]["KickIconGrow"] == "DOWN"
@@ -611,7 +611,7 @@ local function UpdateBarStyle(self, unit)
     statusBar:SetStatusBarTexture(addon.LSM:Fetch("statusbar", addon.db[self.modName][unit .. "Texture"]))
     statusBar:SetSize(totalWidth, totalHeight)
     statusBar:GetStatusBarTexture():SetVertexColor(self.interruptibleColor:GetRGBA())
-    local sparkColor = CreateColor(addon.Utilities:HexToRGB(addon.db[self.modName]["SparkColor"]))
+    local sparkColor = CreateColor(addon.Utility:HexToRGB(addon.db[self.modName]["SparkColor"]))
     local sparkWidth = addon.db[self.modName]["SparkWidth"] or SPARK_WIDTH
     statusBar.spark:SetSize(sparkWidth, totalHeight)
     statusBar.spark:SetColorTexture(sparkColor:GetRGBA())
@@ -792,7 +792,7 @@ function FocusInterrupt:Test(on)
         testDuration:SetTimeFromStart(GetTime(), 30)
         UpdateInterruptId(self)
 
-        addon.Utilities:ShowEditFrame(self.bars[unit], addon.db[self.modName], unit .. "X", unit .. "Y", nil, L["FocusInterruptSettings"], self.modName, function() -- drag for re-positioning and capable of running test mode simultaneously
+        addon.Utility:ShowEditFrame(self.bars[unit], addon.db[self.modName], unit .. "X", unit .. "Y", nil, L["FocusInterruptSettings"], self.modName, function() -- drag for re-positioning and capable of running test mode simultaneously
             OnUpdate(self, unit, testDuration, false, false)
         end)
 
@@ -806,17 +806,17 @@ function FocusInterrupt:Test(on)
 
         if addon.db[self.modName]["ShowKickIcons"] then
             self.kickIcon:Show() -- always preview the drag handle in test mode, regardless of ShowKickIcons
-            addon.Utilities:ShowEditFrame(self.kickIcon, addon.db[self.modName], "KickIconX", "KickIconY", nil, L["InterruptIconsSettings"], self.modName)
+            addon.Utility:ShowEditFrame(self.kickIcon, addon.db[self.modName], "KickIconX", "KickIconY", nil, L["InterruptIconsSettings"], self.modName)
         end
     else
         for unit, _ in pairs(self.bars) do
             self.bars[unit].active = false
             ActivateComponent(self, false, unit)
-            addon.Utilities:HideEditFrame(self.bars[unit])
+            addon.Utility:HideEditFrame(self.bars[unit])
         end
 
         if addon.db[self.modName]["ShowKickIcons"] then
-            addon.Utilities:HideEditFrame(self.kickIcon)
+            addon.Utility:HideEditFrame(self.kickIcon)
         end
         if addon.db[self.modName]["ShowKickIcons"] then
             if not self.kickIcon.active then -- revert to its real state if the icons are actually disabled

@@ -137,11 +137,11 @@ end
 
 ---@param hex string a hex color as stored in the database
 function ColorPicker:SetHexColor(hex)
-    self:SetColor(addon.Utilities:HexToRGB(hex))
+    self:SetColor(addon.Utility:HexToRGB(hex))
 end
 
 function ColorPicker:GetHexColor()
-    return addon.Utilities:RGBToHex(self.r, self.g, self.b, self.a)
+    return addon.Utility:RGBToHex(self.r, self.g, self.b, self.a)
 end
 
 function ColorPicker:SetDisabled(disabled)

@@ -1,0 +1,7 @@
+<Ui xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
+  <Script file="Utility.lua"/>
+  <Script file="Initialize.lua"/>
+  <Script file="DBHandler.lua"/>
+  <Script file="EventsHandler.lua"/>
+  <Script file="ModuleHandler.lua"/>
+</Ui>

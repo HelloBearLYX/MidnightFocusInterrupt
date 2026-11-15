@@ -34,7 +34,7 @@ local SECTION_TITLE_HEIGHT = 16
 local SEPARATOR_HEIGHT = 1
 local DIVIDER_COLOR = { 1, 1, 1, 0.5 }
 
-local HIGHLIGHT_TEXT_COLOR = "|c" .. addon.Utilities:RGBToHex(unpack(addon.UICore:GetHighlightColor()))
+local HIGHLIGHT_TEXT_COLOR = "|c" .. addon.Utility:RGBToHex(unpack(addon.UICore:GetHighlightColor()))
 
 -- MARK: Helpers
 
