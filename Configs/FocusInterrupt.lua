@@ -10,7 +10,7 @@ addon.core:RegisterDBDefaults(MOD_KEY, {
     EnabledMarkNotification = true,
     KickMark = 5,
     SoundMedia = "None",
-    InterruptedSound = "[HBLyx] Info",
+    FailKickSound = "[HBLyx] Info",
     SoundChannel = "Master",
     CooldownHide = false,
     CooldownColor = "ffC41E3A",
@@ -217,8 +217,8 @@ local function RenderPanel(parent)
     local soundSelect = GUI:CreateSoundSelect(nil, L["AnyCastStart"], addon.db.FocusInterrupt.SoundMedia, function(value)
         addon.db.FocusInterrupt.SoundMedia = value
     end)
-    local interruptedSoundSelect = GUI:CreateSoundSelect(nil, L["InterruptedSound"], addon.db.FocusInterrupt.InterruptedSound, function(value)
-        addon.db.FocusInterrupt.InterruptedSound = value
+    local failKickSoundSelect = GUI:CreateSoundSelect(nil, L["FailKickSound"], addon.db.FocusInterrupt.FailKickSound, function(value)
+        addon.db.FocusInterrupt.FailKickSound = value
     end)
     local soundChannelDropdown = GUI:CreateDropdown(nil, L["SoundChannelSettings"], addon.Utility.SoundChannels, nil, addon.db.FocusInterrupt.SoundChannel, function(value)
         addon.db.FocusInterrupt.SoundChannel = value
@@ -226,13 +226,14 @@ local function RenderPanel(parent)
     GUI:CreateToggleCheckBox(soundGroup, L["Mute"], addon.db.FocusInterrupt.Mute, function(value)
         addon.db.FocusInterrupt.Mute = value
         soundSelect:SetDisabled(value)
-        interruptedSoundSelect:SetDisabled(value)
+        failKickSoundSelect:SetDisabled(value)
         soundChannelDropdown:SetDisabled(value)
     end)
     soundSelect:SetDisabled(addon.db.FocusInterrupt.Mute)
+    failKickSoundSelect:SetDisabled(addon.db.FocusInterrupt.Mute)
     soundChannelDropdown:SetDisabled(addon.db.FocusInterrupt.Mute)
     frame:AddWidget(soundSelect)
-    frame:AddWidget(interruptedSoundSelect)
+    frame:AddWidget(failKickSoundSelect)
     frame:AddWidget(soundChannelDropdown)
 
     -- style

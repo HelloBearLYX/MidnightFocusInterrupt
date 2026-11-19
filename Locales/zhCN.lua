@@ -55,6 +55,14 @@ L["SoundChannel"] = {
 	Dialog = "对话",
 }
 
+-- MARK: Constants
+L["PetFamily"] = {
+	Felguard = "恶魔卫士",
+	Felhunter = "地狱猎犬",
+	Imp = "小鬼",
+	WRONG = "宝宝错误!",
+}
+
 -- MARK: Config
 L["ConfigPanel"] = "打开配置面板"
 L["EditMode"] = "编辑模式"
@@ -117,7 +125,7 @@ L["FocusInterruptCooldownFilter"] = "打断技能未就绪时隐藏"
 L["FocusInterruptNotReadyColor"] = "打断未就绪颜色"
 L["FocusInterruptibleFilter"] = "不可打断时隐藏"
 L["AnyCastStart"] = "任意施法开始"
-L["InterruptedSound"] = "被打断(成功)"
+L["FailKickSound"] = "打断失败"
 L["InterruptedFadeTime"] = "被打断淡出时间"
 L["ShowInterrupter"] = "显示打断者"
 L["ShowTarget"] = "显示目标"

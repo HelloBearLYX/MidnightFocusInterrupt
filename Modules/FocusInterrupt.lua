@@ -5,9 +5,10 @@ local L = LibStub("AceLocale-3.0"):GetLocale(ADDON_NAME)
 ---@field frame frame frame for FocusInterrupt cast bar
 ---@field active boolean if the FocusInterrupt active
 ---@field interruptID integer interrupt id
+---@field lastKickTime C_Timer? timer for the last kick check
 ---@field subInterrupt integer? if there is a second interrupt
 ---@field timer C_Timer? timer to handle interrupt fade out
----@field cooldownColer ColorMixin? color for interrupt on cooldown cast
+---@field cooldownColor ColorMixin? color for interrupt on cooldown cast
 ---@field interruptibleColor ColorMixin? color for interruptible cast
 ---@field notInterruptibleColor ColorMixin? color for NOT interruptible cast
 ---@field interruptedColor ColorMixin? color for interrupted fade time
@@ -24,6 +25,7 @@ local FocusInterrupt = {
 -- MARK: Constants
 local UNKNOWN_SPELL_TEXTURE = 134400
 local SPARK_WIDTH = 2
+local KICK_CHECK_DURATION = 1.5 -- abtarily decided 1.5, but use 5 for testing
 local INTERRUPT_BY_CLASS = {
     DEATHKNIGHT = {DEFAULT = 47528}, -- Mind Freeze
     DEMONHUNTER = {DEFAULT = 183752}, -- Disrupt
@@ -42,6 +44,10 @@ local INTERRUPT_BY_CLASS = {
 local WARLOCK_PET_SUMMON = {
     [30146] = INTERRUPT_BY_CLASS["WARLOCK"]["DEMONOLOGY"], -- Felguard
     [691] = INTERRUPT_BY_CLASS["WARLOCK"]["DEFAULT"], -- Felhunter
+}
+local WARLOCK_PET_PLAYER = {
+    [19647] = 119910, -- Felhunter
+    [119914] = 119914, -- Felguard
 }
 local FOCUS_MACRO_NAME = "HBT_SetFocus"
 local FOCUS_MACRO_ICON = "ability_hunter_mastermarksman"
@@ -149,7 +155,17 @@ local function InitializeDemoWarlockInterruptIDSwitch(self)
     -- defaultly, set the lastPet to Felguard, as it is the most common pet for Demo Warlock
     -- otherwise, use the lastPet to determine the interruptID
     if not self.lastPet then
-        self.lastPet = 30146
+        -- check pet family if possible
+        local petFamily
+        if UnitExists("pet") then
+            petFamily = UnitCreatureFamily("pet")
+        end
+
+        if petFamily == L["PetFamily"]["Felhunter"] then
+            SetDemoWarlockInterrupt(self, "player", 691) -- Felhunter
+        else
+            SetDemoWarlockInterrupt(self, "player", 30146) -- Felguard
+        end
     end
 
     return WARLOCK_PET_SUMMON[self.lastPet]
@@ -332,10 +348,10 @@ local function InterruptHandler(self, unit, guid)
     end)
 
     -- play a successful interrupt sound
-    local sound = addon.LSM:Fetch("sound", addon.db[self.modName]["InterruptedSound"])
-    if sound and not addon.db[self.modName]["Mute"] then
-        PlaySoundFile(sound, addon.db[self.modName]["SoundChannel"] or "Master")
-    end
+    -- local sound = addon.LSM:Fetch("sound", addon.db[self.modName]["InterruptedSound"])
+    -- if sound and not addon.db[self.modName]["Mute"] then
+    --     PlaySoundFile(sound, addon.db[self.modName]["SoundChannel"] or "Master")
+    -- end
 end
 
 -- MARK: Get Interrupt Ready
@@ -847,6 +863,15 @@ function FocusInterrupt:RegisterEvents() -- for cast-start events
             self.bars[unit].active = false
             ActivateComponent(self, false, unit)
         end
+
+        -- when the stop cast triggered, set a timer to check if there is a kick cast within a short duration (KICK_CHECK_DURATION) after
+        if self.lastKickTimer then
+            self.lastKickTimer:Cancel()
+            self.lastKickTimer = nil
+        end
+        self.lastKickTimer = C_Timer.NewTimer(KICK_CHECK_DURATION, function()
+            self.lastKickTimer = nil
+        end)
     end
 
     local function InterruptedHandle(...)
@@ -917,15 +942,42 @@ function FocusInterrupt:RegisterEvents() -- for cast-start events
         bar:SetScript("OnEvent", BarOnEvent)
     end
 
-    -- hook independent kick mark
+    -- General event registrations
+    -- if fail kick sound alert is enabled
+    if addon.db[self.modName].FailKickSound and (addon.db[self.modName].FailKickSound ~= "" or addon.db[self.modName].FailKickSound ~= "None") then
+        addon.core:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", self.frame, self.modName, "player")
+    end
+    -- if mark notification is enabled
     if addon.db[self.modName].EnabledMarkNotification then
         addon.core:RegisterEvent("READY_CHECK", self.frame, self.modName)
-        self.frame:SetScript("OnEvent", function(_, event, ...)
-            if event == "READY_CHECK" then
-                NotifyKickMark(self)
-            end
-        end)
     end
+    self.frame:SetScript("OnEvent", function(_, event, ...)
+        if event == "READY_CHECK" then
+            NotifyKickMark(self)
+        elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+            -- track last kick time
+            local spellID = select(3, ...)
+            -- a special case for warlock is that player's spellID is different from the pet's spellID with UNIT_SPELLCAST_SUCCEEDED
+            -- therefore, must use WARLOCK_PET_PLAYER to check if the spellID belongs to the player's pet
+            local mainInterruptPlayerID, subInterruptPlayerID
+            if addon.states.playerClass == "WARLOCK" then
+                mainInterruptPlayerID = WARLOCK_PET_PLAYER[self.interruptID]
+                subInterruptPlayerID =  self.subInterrupt and WARLOCK_PET_PLAYER[self.subInterrupt] or nil
+            else
+                mainInterruptPlayerID = self.interruptID
+                subInterruptPlayerID = self.subInterrupt
+            end
+            if not issecretvalue(spellID) and (spellID == mainInterruptPlayerID or (subInterruptPlayerID and spellID == subInterruptPlayerID)) then
+                -- if last kick timer is still active, it means the kick failed since there is a stop casting event before the kick
+                if self.lastKickTimer then -- if the last kick timer is still active, it means the kick failed
+                    local sound = addon.LSM:Fetch("sound", addon.db[self.modName]["FailKickSound"])
+                    if sound and not addon.db[self.modName]["Mute"] then
+                        PlaySoundFile(sound, addon.db[self.modName]["SoundChannel"] or "Master")
+                    end
+                end
+            end
+        end
+    end)
 end
 
 ---Unregister events
@@ -944,6 +996,7 @@ function FocusInterrupt:UnregisterEvents()
     end
     addon.core:UnregisterStateMonitor("playerSpec", self.modName)
     addon.core:UnregisterEvent("READY_CHECK", self.frame, self.modName)
+    addon.core:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED", self.frame, self.modName, "player")
 end
 
 -- MARK: Register Module

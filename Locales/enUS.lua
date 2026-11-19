@@ -52,6 +52,14 @@ L["SoundChannel"] = {
 	Dialog = "Dialog",
 }
 
+-- MARK: Constants
+L["PetFamily"] = {
+	Felguard = "Felguard",
+	Felhunter = "Felhunter",
+	Imp = "Imp",
+	WRONG = "Wrong Pet!",
+}
+
 -- MARK: Config
 L["ConfigPanel"] = "Open Configurations Panel"
 L["EditMode"] = "Edit Mode"
@@ -114,7 +122,7 @@ L["FocusInterruptCooldownFilter"] = "Hide if Kick NOT Ready"
 L["FocusInterruptNotReadyColor"] = "Kick Not Ready Color"
 L["FocusInterruptibleFilter"] = "Hide if Non-Interruptible"
 L["AnyCastStart"] = "Any Cast Start"
-L["InterruptedSound"] = "Interrupted Successful"
+L["FailKickSound"] = "Failed Interrupt"
 L["InterruptedFadeTime"] = "Interrpted Fade Time"
 L["ShowInterrupter"] = "Show Interrupter"
 L["ShowTarget"] = "Show Target"
