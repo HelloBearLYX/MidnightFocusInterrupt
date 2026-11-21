@@ -685,6 +685,65 @@ local function UpdateBarStyle(self, unit)
     end
 end
 
+--- Start Interrupt Checker
+---@param self table the FocusInterrupt instance
+local function StartInterruptChecker(self)
+    -- when the stop cast triggered, set a timer to check if there is a kick cast within a short duration (KICK_CHECK_DURATION) after
+    if self.lastKickTimer then
+        self.lastKickTimer:Cancel()
+        self.lastKickTimer = nil
+    end
+    self.lastKickTimer = C_Timer.NewTimer(KICK_CHECK_DURATION, function()
+        self.lastKickTimer = nil
+    end)
+end
+
+--- Handle the start of a cast
+---@param self table the FocusInterrupt instance
+---@param ... any the event arguments
+local function StartCastHandle(...)
+    local unit = select(1, ...)
+    if self.bars[unit].timer then -- if the interrupted fade Timer is still there, we should immediately halt it and handle new cast
+        self.bars[unit].timer:Cancel()
+        self.bars[unit].timer = nil
+    end
+
+    self.bars[unit].active = true
+    Handler(self, unit)
+end
+
+--- Handle the stop of a cast
+---@param self table the FocusInterrupt instance
+---@param ... any the event arguments
+local function StopCastHandle(...)
+    local unit = select(1, ...)
+    if not self.bars[unit].timer then -- since the stop-cast events also triggered after the interrupted-events, must avoid stop-cast events override the interrupted-events
+        self.bars[unit].active = false
+        ActivateComponent(self, false, unit)
+    end
+
+    StartInterruptChecker(self)
+end
+
+--- Handle an interrupted cast
+---@param self table the FocusInterrupt instance
+---@param ... any the event arguments
+local function InterruptedHandle(...)
+    local unit, _, _, guid = ... -- if guid != null -> some one interrupted it
+    if guid then -- handle interrupted
+        InterruptHandler(self, unit, guid)
+        StartInterruptChecker(self)
+    else -- potential a normal stop cast
+        StopCastHandle(...)
+    end
+end
+
+--- Update the interrupt ID
+---@param self table the FocusInterrupt instance
+local function UpdateID(self)
+    UpdateInterruptId(self)
+end
+
 -- public methods
 -- MARK: Create Bar
 
@@ -846,47 +905,6 @@ end
 
 ---Register events for FocusInterrupt on EventsHandler
 function FocusInterrupt:RegisterEvents() -- for cast-start events
-    local function StartCastHandle(...)
-        local unit = select(1, ...)
-        if self.bars[unit].timer then -- if the interrupted fade Timer is still there, we should immediately halt it and handle new cast
-            self.bars[unit].timer:Cancel()
-            self.bars[unit].timer = nil
-        end
-        
-        self.bars[unit].active = true
-        Handler(self, unit)
-    end
-    
-    local function StopCastHandle(...)
-        local unit = select(1, ...)
-        if not self.bars[unit].timer then -- since the stop-cast events also triggered after the interrupted-events, must avoid stop-cast events override the interrupted-events
-            self.bars[unit].active = false
-            ActivateComponent(self, false, unit)
-        end
-
-        -- when the stop cast triggered, set a timer to check if there is a kick cast within a short duration (KICK_CHECK_DURATION) after
-        if self.lastKickTimer then
-            self.lastKickTimer:Cancel()
-            self.lastKickTimer = nil
-        end
-        self.lastKickTimer = C_Timer.NewTimer(KICK_CHECK_DURATION, function()
-            self.lastKickTimer = nil
-        end)
-    end
-
-    local function InterruptedHandle(...)
-        local unit, _, _, guid = ... -- if guid != null -> some one interrupted it
-        if guid then -- handle interrupted
-            InterruptHandler(self, unit, guid)
-        else -- potential a normal stop cast
-            StopCastHandle(...)
-        end
-    end
-
-    local function UpdateID()
-        UpdateInterruptId(self)
-    end
-
     local function BarOnEvent(_, event, ...)
         if event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START" then
             StartCastHandle(...)
