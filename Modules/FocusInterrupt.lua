@@ -701,7 +701,7 @@ end
 --- Handle the start of a cast
 ---@param self table the FocusInterrupt instance
 ---@param ... any the event arguments
-local function StartCastHandle(...)
+local function StartCastHandle(self, ...)
     local unit = select(1, ...)
     if self.bars[unit].timer then -- if the interrupted fade Timer is still there, we should immediately halt it and handle new cast
         self.bars[unit].timer:Cancel()
@@ -715,7 +715,7 @@ end
 --- Handle the stop of a cast
 ---@param self table the FocusInterrupt instance
 ---@param ... any the event arguments
-local function StopCastHandle(...)
+local function StopCastHandle(self, ...)
     local unit = select(1, ...)
     if not self.bars[unit].timer then -- since the stop-cast events also triggered after the interrupted-events, must avoid stop-cast events override the interrupted-events
         self.bars[unit].active = false
@@ -728,13 +728,13 @@ end
 --- Handle an interrupted cast
 ---@param self table the FocusInterrupt instance
 ---@param ... any the event arguments
-local function InterruptedHandle(...)
+local function InterruptedHandle(self, ...)
     local unit, _, _, guid = ... -- if guid != null -> some one interrupted it
     if guid then -- handle interrupted
         InterruptHandler(self, unit, guid)
         StartInterruptChecker(self)
     else -- potential a normal stop cast
-        StopCastHandle(...)
+        StopCastHandle(self, ...)
     end
 end
 
@@ -907,11 +907,11 @@ end
 function FocusInterrupt:RegisterEvents() -- for cast-start events
     local function BarOnEvent(_, event, ...)
         if event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START" then
-            StartCastHandle(...)
+            StartCastHandle(self, ...)
         elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED" then
-            StopCastHandle(...)
+            StopCastHandle(self, ...)
         elseif event == "UNIT_SPELLCAST_INTERRUPTED" or event == "UNIT_SPELLCAST_CHANNEL_STOP" then
-            InterruptedHandle(...)
+            InterruptedHandle(self, ...)
         elseif event == "PLAYER_FOCUS_CHANGED" then -- only hooked on focus bar
             if self.bars.focus.timer then
                 self.bars.focus.timer:Cancel()
@@ -942,7 +942,7 @@ function FocusInterrupt:RegisterEvents() -- for cast-start events
         addon.core:RegisterEvent("PLAYER_TARGET_CHANGED", self.bars.target, self.modName)
     end
     -- switch spec
-    addon.core:RegisterStateMonitor("playerSpec", self.modName, UpdateID)
+    addon.core:RegisterStateMonitor("playerSpec", self.modName, function() UpdateID(self) end)
     -- stop cast
     for unit, bar in pairs(self.bars) do
         addon.core:RegisterEvent("UNIT_SPELLCAST_STOP", bar, self.modName, unit)
