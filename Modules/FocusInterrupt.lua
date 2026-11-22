@@ -585,6 +585,12 @@ local function Handler(self, unit)
     -- use alpha hiden instead of Hide() to prevent bugs on any hooked script or potential future hooked script
     self.bars[unit]:SetAlphaFromBoolean(addon.db[self.modName]["Hidden"], 0, 255)
 
+    -- Play sound for any cast(since "UNIT_SPELLCAST_INTERRUPTIBLE" event is not activated by Blizzard yet, delete this snippet if the event gets activated in the future)
+    local soundFile = addon.LSM:Fetch("sound", addon.db[self.modName]["SoundMedia"])
+    if not addon.db[self.modName]["Mute"] and soundFile then
+        PlaySoundFile(soundFile, addon.db[self.modName]["SoundChannel"])
+    end
+
     ActivateComponent(self, true, unit) -- show components if they are hidden by settings
 end
 
@@ -600,7 +606,7 @@ local function UpdateBarStyle(self, unit)
     -- basic size and position of bar
     bar:SetSize(addon.db[self.modName][unit .. "Width"], addon.db[self.modName][unit .. "Height"])
     bar:SetPoint("CENTER", UIParent, "CENTER", addon.db[self.modName][unit .. "X"], addon.db[self.modName][unit .. "Y"])
-    
+
     -- background is kind of Blizzard's texture, only color and alpha are customizable
     self.bars[unit].background:SetColorTexture(0, 0, 0, addon.db[self.modName][unit .. "BackgroundAlpha"])
 
@@ -684,12 +690,12 @@ end
 ---@param self table the FocusInterrupt instance
 local function StartInterruptChecker(self)
     -- when the stop cast triggered, set a timer to check if there is a kick cast within a short duration (KICK_CHECK_DURATION) after
-    if self.lastKickTimer then
-        self.lastKickTimer:Cancel()
-        self.lastKickTimer = nil
+    if self.kickCheckTimer then
+        self.kickCheckTimer:Cancel()
+        self.kickCheckTimer = nil
     end
-    self.lastKickTimer = C_Timer.NewTimer(KICK_CHECK_DURATION, function()
-        self.lastKickTimer = nil
+    self.kickCheckTimer = C_Timer.NewTimer(KICK_CHECK_DURATION, function()
+        self.kickCheckTimer = nil
     end)
 end
 
@@ -701,6 +707,11 @@ local function StartCastHandle(self, ...)
     if self.bars[unit].timer then -- if the interrupted fade Timer is still there, we should immediately halt it and handle new cast
         self.bars[unit].timer:Cancel()
         self.bars[unit].timer = nil
+    end
+    -- cancel any existing interrupt check timer to prevent immediate second cast issue
+    if self.kickCheckTimer then
+        self.kickCheckTimer:Cancel()
+        self.kickCheckTimer = nil
     end
 
     self.bars[unit].active = true
@@ -944,7 +955,8 @@ function FocusInterrupt:RegisterEvents() -- for cast-start events
         addon.core:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED", bar, self.modName, unit)
         addon.core:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP", bar, self.modName, unit)
         -- UNIT_SPELLCAST_INTERRUPTIBLE for cast sound only
-        addon.core:RegisterEvent("UNIT_SPELLCAST_INTERRUPTIBLE", bar, self.modName, unit)
+        -- However, it seems Blizzard has not really activated this event so far, keep the relevant code but commented out for now
+        -- addon.core:RegisterEvent("UNIT_SPELLCAST_INTERRUPTIBLE", bar, self.modName, unit)
 
         -- switch focus/target events
         if unit == "focus" then
@@ -988,8 +1000,8 @@ function FocusInterrupt:RegisterEvents() -- for cast-start events
                 subInterruptPlayerID = self.subInterrupt
             end
             if not issecretvalue(spellID) and (spellID == mainInterruptPlayerID or (subInterruptPlayerID and spellID == subInterruptPlayerID)) then
-                -- if last kick timer is still active, it means the kick failed since there is a stop casting event before the kick
-                if self.lastKickTimer then -- if the last kick timer is still active, it means the kick failed
+                -- if kick check timer is still active, it means the kick failed since there is a stop casting event before the kick
+                if self.kickCheckTimer then -- if the kick check timer is still active, it means the kick failed
                     local sound = addon.LSM:Fetch("sound", addon.db[self.modName]["FailKickSound"])
                     if sound and not addon.db[self.modName]["Mute"] then
                         PlaySoundFile(sound, addon.db[self.modName]["SoundChannel"] or "Master")
@@ -1009,6 +1021,7 @@ function FocusInterrupt:UnregisterEvents()
         addon.core:UnregisterEvent("UNIT_SPELLCAST_FAILED", bar, self.modName, unit)
         addon.core:UnregisterEvent("UNIT_SPELLCAST_INTERRUPTED", bar, self.modName, unit)
         addon.core:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_STOP", bar, self.modName, unit)
+        addon.core:UnregisterEvent("UNIT_SPELLCAST_INTERRUPTIBLE", bar, self.modName, unit)
     end
     addon.core:UnregisterEvent("PLAYER_FOCUS_CHANGED", self.bars.focus, self.modName)
     if self.bars.target then
