@@ -214,7 +214,7 @@ local function RenderPanel(parent)
 
     -- MARK: Core - Sound
     local soundGroup = GUI:CreateInlineGroup(frame, L["SoundSettings"])
-    local soundSelect = GUI:CreateSoundSelect(nil, L["AnyCastStart"], addon.db.FocusInterrupt.SoundMedia, function(value)
+    local soundSelect = GUI:CreateSoundSelect(nil, L["InterruptibleCast"], addon.db.FocusInterrupt.SoundMedia, function(value)
         addon.db.FocusInterrupt.SoundMedia = value
     end)
     local failKickSoundSelect = GUI:CreateSoundSelect(nil, L["FailKickSound"], addon.db.FocusInterrupt.FailKickSound, function(value)

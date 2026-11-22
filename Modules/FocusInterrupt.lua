@@ -585,11 +585,6 @@ local function Handler(self, unit)
     -- use alpha hiden instead of Hide() to prevent bugs on any hooked script or potential future hooked script
     self.bars[unit]:SetAlphaFromBoolean(addon.db[self.modName]["Hidden"], 0, 255)
 
-    -- attempted to use "HookScript("OnShow", func)" for sound alert, nontheless frames are seen as shown while zero alpha and SetShown() cannot take secret-values
-    if not addon.db[self.modName]["Mute"] then
-        PlaySoundFile(addon.LSM:Fetch("sound", addon.db[self.modName]["SoundMedia"]), addon.db[self.modName]["SoundChannel"])
-    end
-
     ActivateComponent(self, true, unit) -- show components if they are hidden by settings
 end
 
@@ -912,6 +907,12 @@ function FocusInterrupt:RegisterEvents() -- for cast-start events
             StopCastHandle(self, ...)
         elseif event == "UNIT_SPELLCAST_INTERRUPTED" or event == "UNIT_SPELLCAST_CHANNEL_STOP" then
             InterruptedHandle(self, ...)
+        elseif event == "UNIT_SPELLCAST_INTERRUPTIBLE" then
+            -- only play sound
+            local soundFile = addon.LSM:Fetch("sound", addon.db[self.modName]["SoundMedia"])
+            if not addon.db[self.modName]["Mute"] and soundFile then
+                PlaySoundFile(soundFile, addon.db[self.modName]["SoundChannel"])
+            end
         elseif event == "PLAYER_FOCUS_CHANGED" then -- only hooked on focus bar
             if self.bars.focus.timer then
                 self.bars.focus.timer:Cancel()
@@ -931,28 +932,29 @@ function FocusInterrupt:RegisterEvents() -- for cast-start events
         end
     end
 
-    -- active cast
+    -- Register unit spellcast events for each bar
     for unit, bar in pairs(self.bars) do
+        -- active cast
         addon.core:RegisterEvent("UNIT_SPELLCAST_START", bar, self.modName, unit)
         addon.core:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START", bar, self.modName, unit)
-    end
-    -- switch focus/target
-    addon.core:RegisterEvent("PLAYER_FOCUS_CHANGED", self.bars.focus, self.modName)
-    if self.bars.target then -- only register target change event when target bar exist
-        addon.core:RegisterEvent("PLAYER_TARGET_CHANGED", self.bars.target, self.modName)
+        -- stop cast
+        addon.core:RegisterEvent("UNIT_SPELLCAST_STOP", bar, self.modName, unit)
+        addon.core:RegisterEvent("UNIT_SPELLCAST_FAILED", bar, self.modName, unit)
+        -- interrupted/stop cast
+        addon.core:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED", bar, self.modName, unit)
+        addon.core:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP", bar, self.modName, unit)
+        -- UNIT_SPELLCAST_INTERRUPTIBLE for cast sound only
+        addon.core:RegisterEvent("UNIT_SPELLCAST_INTERRUPTIBLE", bar, self.modName, unit)
+
+        -- switch focus/target events
+        if unit == "focus" then
+            addon.core:RegisterEvent("PLAYER_FOCUS_CHANGED", bar, self.modName)
+        elseif unit == "target" then
+            addon.core:RegisterEvent("PLAYER_TARGET_CHANGED", bar, self.modName)
+        end
     end
     -- switch spec
     addon.core:RegisterStateMonitor("playerSpec", self.modName, function() UpdateID(self) end)
-    -- stop cast
-    for unit, bar in pairs(self.bars) do
-        addon.core:RegisterEvent("UNIT_SPELLCAST_STOP", bar, self.modName, unit)
-        addon.core:RegisterEvent("UNIT_SPELLCAST_FAILED", bar, self.modName, unit)
-    end
-    -- interrupted/stop cast
-    for unit, bar in pairs(self.bars) do
-        addon.core:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED", bar, self.modName, unit)
-        addon.core:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP", bar, self.modName, unit)
-    end
 
     -- hook to events
     -- bar events
