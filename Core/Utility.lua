@@ -32,7 +32,16 @@ local Utility = {
         Dialog = L["SoundChannel"]["Dialog"],
     },
     ---@enum RaidMarker Raid markers (icon markup)
-    RaidMarkers = {},
+    RaidMarkers = {
+        [1] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_1:0|t",
+        [2] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_2:0|t",
+        [3] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_3:0|t",
+        [4] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_4:0|t",
+        [5] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_5:0|t",
+        [6] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_6:0|t",
+        [7] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_7:0|t",
+        [8] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_8:0|t",
+    },
     ---@enum FrameStrata Frame strata
     FrameStrata = {
         BACKGROUND = "BACKGROUND",
@@ -43,10 +52,13 @@ local Utility = {
         FULLSCREEN = "FULLSCREEN",
         FULLSCREEN_DIALOG = "FULLSCREEN_DIALOG",
     },
+    ---@enum GroupRole Group roles
+    GroupRoles = {
+        TANK = "TANK",
+        HEALER = "HEALER",
+        DAMAGER = "DAMAGER",
+    },
 }
-for i = 1, 8 do
-    Utility.RaidMarkers[i] = string.format("|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_%d:0|t", i)
-end
 addon.Utility = Utility
 
 -- MARK: Print
@@ -57,19 +69,15 @@ function Utility:print(message)
 	print("|cff8788ee" .. ADDON_NAME .. "|r: " .. message)
 end
 
----Debug print
+---Debug print in form of string format
 ---@param message string debug message
----@param callback function? additional function to call after print
-function addon:debug(message, callback)
-	addon.Utility:print("|cffff0000[Debug]|r " .. message)
-	if callback then
-		callback()
-	end
+function addon:debug(message, ...)
+	addon.Utility:print("|cffff0000[Debug]|r " .. string.format(message, ...))
 end
 
 ---Get the addon's current version
 function addon:GetVersion()
-	return addon.version
+    return addon.version or C_AddOns.GetAddOnMetadata(ADDON_NAME, "Version")
 end
 
 -- MARK: Popup Dialogs
@@ -362,7 +370,8 @@ function Utility:GetAllSpecIconList(withColor)
 	local output = {}
 
 	for class = 1, 13 do
-		local classColorObj = C_ClassColor.GetClassColor(select(2, GetClassInfo(class)))
+		local classFileName = select(2, GetClassInfo(class))
+		local classColorObj = C_ClassColor.GetClassColor(classFileName)
 		local specsCount = C_SpecializationInfo.GetNumSpecializationsForClassID(class)
 		output[class] = {}
 		for specIndex = 1, specsCount do

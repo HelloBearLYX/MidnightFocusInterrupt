@@ -56,7 +56,7 @@ function ModuleHandler:Initialize()
     self.frame:SetScript("OnEvent", function()
         UpdateAllModulesStyle(self)
     end)
-    addon.core:RegisterEvent("PLAYER_ENTERING_WORLD", self.frame, "Core")
+    addon.core:RegisterEvent("PLAYER_ENTERING_WORLD", self.frame, "Core-ModuleHandler")
 end
 
 -- MARK: Module Management
@@ -186,7 +186,7 @@ function ModuleHandler:ToggleModule(mod, on)
         return success
     else
         local success = self:UnloadModule(mod)
-        self:ShowReloadPopup()
+        addon.core:ShowReloadPopup()
         return success
     end
 end

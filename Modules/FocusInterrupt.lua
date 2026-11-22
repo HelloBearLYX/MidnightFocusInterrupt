@@ -25,7 +25,6 @@ local FocusInterrupt = {
 -- MARK: Constants
 local UNKNOWN_SPELL_TEXTURE = 134400
 local SPARK_WIDTH = 2
-local KICK_CHECK_DURATION = 1.5 -- abtarily decided 1.5, but use 5 for testing
 local INTERRUPT_BY_CLASS = {
     DEATHKNIGHT = {DEFAULT = 47528}, -- Mind Freeze
     DEMONHUNTER = {DEFAULT = 183752}, -- Disrupt
@@ -686,19 +685,6 @@ local function UpdateBarStyle(self, unit)
     end
 end
 
---- Start Interrupt Checker
----@param self table the FocusInterrupt instance
-local function StartInterruptChecker(self)
-    -- when the stop cast triggered, set a timer to check if there is a kick cast within a short duration (KICK_CHECK_DURATION) after
-    if self.kickCheckTimer then
-        self.kickCheckTimer:Cancel()
-        self.kickCheckTimer = nil
-    end
-    self.kickCheckTimer = C_Timer.NewTimer(KICK_CHECK_DURATION, function()
-        self.kickCheckTimer = nil
-    end)
-end
-
 --- Handle the start of a cast
 ---@param self table the FocusInterrupt instance
 ---@param ... any the event arguments
@@ -708,12 +694,6 @@ local function StartCastHandle(self, ...)
         self.bars[unit].timer:Cancel()
         self.bars[unit].timer = nil
     end
-    -- cancel any existing interrupt check timer to prevent immediate second cast issue
-    if self.kickCheckTimer then
-        self.kickCheckTimer:Cancel()
-        self.kickCheckTimer = nil
-    end
-
     self.bars[unit].active = true
     Handler(self, unit)
 end
@@ -727,8 +707,6 @@ local function StopCastHandle(self, ...)
         self.bars[unit].active = false
         ActivateComponent(self, false, unit)
     end
-
-    StartInterruptChecker(self)
 end
 
 --- Handle an interrupted cast
@@ -738,7 +716,6 @@ local function InterruptedHandle(self, ...)
     local unit, _, _, guid = ... -- if guid != null -> some one interrupted it
     if guid then -- handle interrupted
         InterruptHandler(self, unit, guid)
-        StartInterruptChecker(self)
     else -- potential a normal stop cast
         StopCastHandle(self, ...)
     end
@@ -999,9 +976,18 @@ function FocusInterrupt:RegisterEvents() -- for cast-start events
                 mainInterruptPlayerID = self.interruptID
                 subInterruptPlayerID = self.subInterrupt
             end
+            -- wrap a secret value check around the spellID to ensure it is valid
+            -- also check sub-interrupt if it exists
             if not issecretvalue(spellID) and (spellID == mainInterruptPlayerID or (subInterruptPlayerID and spellID == subInterruptPlayerID)) then
-                -- if kick check timer is still active, it means the kick failed since there is a stop casting event before the kick
-                if self.kickCheckTimer then -- if the kick check timer is still active, it means the kick failed
+                -- a kick is only successful if it is used during an active cast
+                local anyActive = false
+                for _, bar in pairs(self.bars) do
+                    if bar.active then
+                        anyActive = true
+                        break
+                    end
+                end
+                if not anyActive then
                     local sound = addon.LSM:Fetch("sound", addon.db[self.modName]["FailKickSound"])
                     if sound and not addon.db[self.modName]["Mute"] then
                         PlaySoundFile(sound, addon.db[self.modName]["SoundChannel"] or "Master")
