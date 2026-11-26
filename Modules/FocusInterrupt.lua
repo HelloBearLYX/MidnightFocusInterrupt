@@ -721,6 +721,59 @@ local function InterruptedHandle(self, ...)
     end
 end
 
+--- Handle the failed interrupt check
+--- @param self table the FocusInterrupt instance
+--- @param ... any the event arguments
+local function FailedInterruptCheck(self, ...)
+    local spellID = select(3, ...)
+    -- a special case for warlock is that player's spellID is different from the pet's spellID with UNIT_SPELLCAST_SUCCEEDED
+    -- therefore, must use WARLOCK_PET_PLAYER to check if the spellID belongs to the player's pet
+    local mainInterruptPlayerID, subInterruptPlayerID
+    if addon.states.playerClass == "WARLOCK" then
+        mainInterruptPlayerID = WARLOCK_PET_PLAYER[self.interruptID]
+        subInterruptPlayerID =  self.subInterrupt and WARLOCK_PET_PLAYER[self.subInterrupt] or nil
+    else
+        mainInterruptPlayerID = self.interruptID
+        subInterruptPlayerID = self.subInterrupt
+    end
+
+    -- apply a secret value check to the spellID to ensure it is valid
+    if issecretvalue(spellID) then return end
+    -- also check sub-interrupt if it exists
+    if spellID == mainInterruptPlayerID or (subInterruptPlayerID and spellID == subInterruptPlayerID) then
+        -- a kick is only successful if it is used during an active cast
+        -- need to check whether the focus/target exists or not
+        -- use UnitIsVisible to check if the focus/target exists instead of UnitExists()
+        -- since UnitExists() returns true even if the unit is out of range as long as the focus hasn't been cleared
+        local focusActive = false
+        local targetActive = false
+        -- instead of check all bars, check "focus" and "target" in order to prioritize them for failed interrupt detection
+        -- actually, self.bars only contains "focus" and "target" bars, so checking these two units is sufficient
+
+        -- check focus
+        if  self.bars["focus"] and UnitIsVisible("focus") then -- check both whether the focus bar exists and the focus unit exists
+            focusActive = self.bars["focus"].active
+        end
+        -- check target
+        -- first check, whether the target bar exists, since the target bar may not been initialized
+        -- in other words, only check the target unit if the target bar exists
+        if  self.bars["target"] then
+            if UnitIsVisible("target") then
+                targetActive = self.bars["target"].active
+            end
+        end
+
+        local playFailedInterruptSound = not focusActive and not targetActive
+        if playFailedInterruptSound then
+            -- play the failed interrupt sound if applicable
+            local sound = addon.LSM:Fetch("sound", addon.db[self.modName]["FailKickSound"])
+            if sound and not addon.db[self.modName]["Mute"] then
+                PlaySoundFile(sound, addon.db[self.modName]["SoundChannel"] or "Master")
+            end
+        end
+    end
+end
+
 --- Update the interrupt ID
 ---@param self table the FocusInterrupt instance
 local function UpdateID(self)
@@ -964,47 +1017,7 @@ function FocusInterrupt:RegisterEvents() -- for cast-start events
         if event == "READY_CHECK" then
             NotifyKickMark(self)
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
-            -- track last kick time
-            local spellID = select(3, ...)
-            -- a special case for warlock is that player's spellID is different from the pet's spellID with UNIT_SPELLCAST_SUCCEEDED
-            -- therefore, must use WARLOCK_PET_PLAYER to check if the spellID belongs to the player's pet
-            local mainInterruptPlayerID, subInterruptPlayerID
-            if addon.states.playerClass == "WARLOCK" then
-                mainInterruptPlayerID = WARLOCK_PET_PLAYER[self.interruptID]
-                subInterruptPlayerID =  self.subInterrupt and WARLOCK_PET_PLAYER[self.subInterrupt] or nil
-            else
-                mainInterruptPlayerID = self.interruptID
-                subInterruptPlayerID = self.subInterrupt
-            end
-            -- wrap a secret value check around the spellID to ensure it is valid
-            -- also check sub-interrupt if it exists
-            if not issecretvalue(spellID) and (spellID == mainInterruptPlayerID or (subInterruptPlayerID and spellID == subInterruptPlayerID)) then
-                -- a kick is only successful if it is used during an active cast
-                local anyActive = false
-                local anyUnitExists = false
-                for unit, bar in pairs(self.bars) do -- no need to break the loop early, since there is at most 2 bars -> O(1) complexity
-                    -- need to check whether the focus/target exists or not
-                    -- if there is no focus/target, the bar should be considered as active
-                    -- no focus/target means the interrupt is cast like mouseover or other ways this module should not take care of
-                    -- thus, if the unit is not visible, we consider the bar as active to account for interrupts cast on non-visible units -> mute the fail kick sound
-                    -- use UnitIsVisible to check if the focus/target exists instead of UnitExists()
-                    -- since UnitExists() returns true even if the unit is out of range as long as the focus hasn't been cleared
-                    local unitExists = UnitIsVisible(unit)
-                    if unitExists then
-                        anyUnitExists = true
-                    end
-
-                    if bar.active then
-                        anyActive = true
-                    end
-                end
-                if not anyActive and anyUnitExists then
-                    local sound = addon.LSM:Fetch("sound", addon.db[self.modName]["FailKickSound"])
-                    if sound and not addon.db[self.modName]["Mute"] then
-                        PlaySoundFile(sound, addon.db[self.modName]["SoundChannel"] or "Master")
-                    end
-                end
-            end
+            FailedInterruptCheck(self, ...)
         end
     end)
 end
