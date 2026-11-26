@@ -981,13 +981,24 @@ function FocusInterrupt:RegisterEvents() -- for cast-start events
             if not issecretvalue(spellID) and (spellID == mainInterruptPlayerID or (subInterruptPlayerID and spellID == subInterruptPlayerID)) then
                 -- a kick is only successful if it is used during an active cast
                 local anyActive = false
-                for _, bar in pairs(self.bars) do
+                local anyUnitExists = false
+                for unit, bar in pairs(self.bars) do -- no need to break the loop early, since there is at most 2 bars -> O(1) complexity
+                    -- need to check whether the focus/target exists or not
+                    -- if there is no focus/target, the bar should be considered as active
+                    -- no focus/target means the interrupt is cast like mouseover or other ways this module should not take care of
+                    -- thus, if the unit is not visible, we consider the bar as active to account for interrupts cast on non-visible units -> mute the fail kick sound
+                    -- use UnitIsVisible to check if the focus/target exists instead of UnitExists()
+                    -- since UnitExists() returns true even if the unit is out of range as long as the focus hasn't been cleared
+                    local unitExists = UnitIsVisible(unit)
+                    if unitExists then
+                        anyUnitExists = true
+                    end
+
                     if bar.active then
                         anyActive = true
-                        break
                     end
                 end
-                if not anyActive then
+                if not anyActive and anyUnitExists then
                     local sound = addon.LSM:Fetch("sound", addon.db[self.modName]["FailKickSound"])
                     if sound and not addon.db[self.modName]["Mute"] then
                         PlaySoundFile(sound, addon.db[self.modName]["SoundChannel"] or "Master")
