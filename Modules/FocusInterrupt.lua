@@ -745,8 +745,8 @@ local function FailedInterruptCheck(self, ...)
         -- need to check whether the focus/target exists or not
         -- use UnitIsVisible to check if the focus/target exists instead of UnitExists()
         -- since UnitExists() returns true even if the unit is out of range as long as the focus hasn't been cleared
-        local focusActive = false
-        local targetActive = false
+        local focusActive = true
+        local targetActive = true
         -- instead of check all bars, check "focus" and "target" in order to prioritize them for failed interrupt detection
         -- actually, self.bars only contains "focus" and "target" bars, so checking these two units is sufficient
 
@@ -761,6 +761,8 @@ local function FailedInterruptCheck(self, ...)
             if UnitIsVisible("target") then
                 targetActive = self.bars["target"].active
             end
+        else
+            targetActive = false
         end
 
         local playFailedInterruptSound = not focusActive and not targetActive
